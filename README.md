@@ -77,6 +77,10 @@ This is a tool for understanding the technique. Hardened mode closes the most co
 
 Needs `crypto.subtle` (so a secure context - `https://` or `localhost`), canvas, and `TextEncoder`. Any current Chrome, Firefox, Safari or Edge is fine. Opening the file directly with `file://` works in Chrome and Firefox for everything except passphrase mode, which needs the secure context.
 
+## Themes
+
+Includes a default dark terminal theme and an alternative modern light theme. 
+
 ![themes](docs/screenshot-themes.png)
 
 ## License
