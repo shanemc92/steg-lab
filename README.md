@@ -69,6 +69,7 @@ Worth reading before you rely on this for anything.
 - **Transparent pixels are skipped.** Canvas premultiplies alpha, so RGB in semi-transparent pixels is not reliably preserved across a load and save. Capacity drops accordingly and the UI says so.
 - **Browsers with canvas fingerprinting protection** (Brave shields, Firefox `resistFingerprinting`) add noise to pixel reads and will corrupt messages in both directions. Turn protection off for the page or use a different browser.
 - Re-encoding through canvas strips EXIF from the carrier, which is a useful side effect but not a substitute for deliberate metadata scrubbing.
+- **Centered mode resists edge overwrites, not crops.** Filling outward from the centre keeps the message clear of borders that get painted over (caption bars, logo stamps, letterboxing) as long as the image dimensions stay the same. It does nothing against cropping: a crop changes the dimensions and re-indexes every pixel, so the decoder cannot locate any bit no matter where it sat. Real crop resistance requires frequency-domain watermarking, which is out of scope for an LSB tool.
 - **Hardened mode requires ~150+ opaque pixels** for any capacity, due to the fixed 384-slot (128-pixel) overhead for the salt and length zones. Any real photograph is far above this.
 
 This is a tool for understanding the technique. Hardened mode closes the most common detection vectors (chi-square, RS analysis, bit-plane inspection, grep-for-magic) but is not a substitute for proper operational security.

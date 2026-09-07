@@ -234,6 +234,7 @@
               <select id="encMode">
                 <option value="seq" selected>sequential (top-left onward)</option>
                 <option value="scatter">scattered (needs passphrase)</option>
+                <option value="centered">centered (survives edge overwrites)</option>
                 <option value="hardened">hardened (passphrase required)</option>
               </select>
             </div>
@@ -329,6 +330,7 @@
           <p>Sequential fills channels in order from the top-left. It is simple and it is also the first thing an analyst looks for - the change is a solid block at the start of the image.</p>
           <p>Scattered spreads the bits across the whole image using gaps derived from your passphrase. Without the passphrase the positions are unknown, and the changes look like ordinary sensor noise rather than a block.</p>
           <p>The position sequence is stretched from the passphrase with PBKDF2, the same way the encryption key is, so guessing positions costs an attacker the same work as guessing the key. Even so, scattering hides the shape of the data rather than its contents - keeping it secret is the encryption's job.</p>
+          <p>Centered fills outward from the middle of the image, ordering pixels by distance from the centre. It needs no passphrase because the ordering is fixed by the image dimensions. Its one job is surviving edge OVERWRITES - a caption bar, a logo stamp, letterboxing - that paint over the border while keeping the image the same size. It does NOT survive cropping: a crop changes width and height, which re-indexes every pixel, so the reader can no longer locate any bit regardless of where it was placed. True crop resistance needs frequency-domain watermarking with a synchronisation pattern, which is a different technique with far lower capacity and is out of scope here.</p>
 
           <h3>Layer encryption underneath</h3>
           <p>Hiding is not protecting. Anyone who guesses the method reads the message. With a passphrase set, steg-lab encrypts with AES-GCM (PBKDF2-SHA256, 150k iterations) before embedding, so extracting the bits gives an attacker nothing but noise.</p>
@@ -658,6 +660,36 @@ function varianceScore(data, width, height, pxMap) {
   return sc;
 }
 
+/* ---------- centered ordering (deterministic, no secret) ----------
+   Returns opaque pixel indices ordered nearest-image-centre first, so a message
+   fills outward from the middle. Reproducible from dimensions alone, so it needs
+   no passphrase. This resists edge OVERWRITES that keep the dimensions (caption
+   bars, logo stamps, letterboxing) - it does NOT resist cropping, which changes
+   the dimensions and re-indexes every pixel. Used as a pixel map: pass it where
+   writeSlots/readSlots expect pxMap. O(n) via counting sort on integer radius. */
+function centeredOrder(width, height, pxMap) {
+  const n = pxMap ? pxMap.length : width * height;
+  const cx = (width - 1) / 2, cy = (height - 1) / 2;
+  const dist = new Int32Array(n);
+  let maxd = 0;
+  for (let i = 0; i < n; i++) {
+    const p = pxMap ? pxMap[i] : i;
+    const x = p % width, y = (p / width) | 0;
+    const dx = x - cx, dy = y - cy;
+    const d = Math.round(Math.sqrt(dx*dx + dy*dy));
+    dist[i] = d; if (d > maxd) maxd = d;
+  }
+  const cnt = new Int32Array(maxd + 1);
+  for (let i = 0; i < n; i++) cnt[dist[i]]++;
+  const start = new Int32Array(maxd + 1);
+  let total = 0;
+  for (let d = 0; d <= maxd; d++) { start[d] = total; total += cnt[d]; }
+  const placed = new Int32Array(maxd + 1);
+  const result = new Int32Array(n);
+  for (let i = 0; i < n; i++) { const d = dist[i]; result[start[d] + placed[d]++] = pxMap ? pxMap[i] : i; }
+  return result;
+}
+
 /* ---------- hardened format ----------
    Layout in the opaque-channel slot space:
      salt zone   : slots 0..127         (16-byte PBKDF2 salt, sequential)
@@ -926,7 +958,7 @@ $('encRun').addEventListener('click', async function(){
     const cap = capacityBytes(enc.slots, bits);
     if(payload.length > cap) throw new Error('message no longer fits after encryption');
 
-    const flags = ((bits - 1) & 0x03) | (mode === 'scatter' ? 0x04 : 0) | (pass ? 0x08 : 0);
+    const flags = ((bits - 1) & 0x03) | (mode === 'scatter' ? 0x04 : 0) | (pass ? 0x08 : 0) | (mode === 'centered' ? 0x10 : 0);
     const header = new Uint8Array(HEADER_BYTES);
     header.set(MAGIC, 0);
     header[4] = flags;
@@ -940,11 +972,14 @@ $('encRun').addEventListener('click', async function(){
     const headerSlots = Math.ceil(HEADER_BITS / bits);
     const payloadSlots = Math.ceil(payload.length * 8 / bits);
 
-    writeSlots(outData.data, enc.pxMap, seqSlots(0, headerSlots), header, bits);
+    const useOrder = mode === 'centered'
+      ? centeredOrder(enc.data.width, enc.data.height, enc.pxMap)
+      : enc.pxMap;
+    writeSlots(outData.data, useOrder, seqSlots(0, headerSlots), header, bits);
     const slots = mode === 'scatter'
       ? scatterSlots(headerSlots, payloadSlots, enc.slots, await scatterSeed(pass))
       : seqSlots(headerSlots, payloadSlots);
-    writeSlots(outData.data, enc.pxMap, slots, payload, bits);
+    writeSlots(outData.data, useOrder, slots, payload, bits);
 
     enc.out = outData;
 
@@ -1033,15 +1068,17 @@ async function decLoad(file){
 }
 wireDrop($('decDrop'), $('decFile'), decLoad);
 
-function tryHeader(bits){
+function tryHeader(order, isCentered, bits){
   const headerSlots = Math.ceil(HEADER_BITS / bits);
   if(headerSlots > dec.slots) return null;
-  const h = readSlots(dec.data.data, dec.pxMap, seqSlots(0, headerSlots), HEADER_BYTES, bits);
+  const h = readSlots(dec.data.data, order, seqSlots(0, headerSlots), HEADER_BYTES, bits);
   for(let i=0;i<4;i++) if(h[i] !== MAGIC[i]) return null;
   const flags = h[4];
   if(((flags & 0x03) + 1) !== bits) return null;
+  if(!!(flags & 0x10) !== isCentered) return null;
   const len = (h[5] << 24 | h[6] << 16 | h[7] << 8 | h[8]) >>> 0;
-  return {bits:bits, headerSlots:headerSlots, len:len, scattered:!!(flags & 0x04), encrypted:!!(flags & 0x08)};
+  return {bits:bits, headerSlots:headerSlots, len:len, order:order,
+          scattered:!!(flags & 0x04), encrypted:!!(flags & 0x08), centered:isCentered};
 }
 
 $('decRun').addEventListener('click', async function(){
@@ -1056,7 +1093,7 @@ $('decRun').addEventListener('click', async function(){
     const hardMsg = await decodeHardened(dec.data.data, dec.pxMap, dec.slots, pass);
     if(hardMsg !== null){
       $('decMsg').textContent = new TextDecoder().decode(hardMsg);
-      $('decMeta').textContent = 'Hardened: adaptive LSB matching, AES-256-GCM, no plaintext header. ' + hardMsg.length.toLocaleString() + ' bytes.';
+      $('decMeta').textContent = 'Hardened: LSB matching, AES-256-GCM, keyed scatter, no plaintext header. ' + hardMsg.length.toLocaleString() + ' bytes.';
       $('decOut').classList.remove('hide');
       setStatus($('decStatus'), 'Message recovered.', 'ok');
       return;
@@ -1064,9 +1101,12 @@ $('decRun').addEventListener('click', async function(){
   }
 
   let hdr = null;
-  for(let bits=1; bits<=3; bits++){
-    hdr = tryHeader(bits);
-    if(hdr) break;
+  // sequential/scattered first (header at natural pixel order)
+  for(let bits=1; bits<=3 && !hdr; bits++) hdr = tryHeader(dec.pxMap, false, bits);
+  // then centered (header fills outward from the middle)
+  if(!hdr){
+    const centered = centeredOrder(dec.data.width, dec.data.height, dec.pxMap);
+    for(let bits=1; bits<=3 && !hdr; bits++) hdr = tryHeader(centered, true, bits);
   }
   if(!hdr){
     const noFind = pass ? 'No message found (tried hardened and standard modes). ' : 'No message found. ';
@@ -1084,7 +1124,7 @@ $('decRun').addEventListener('click', async function(){
     const slots = hdr.scattered
       ? scatterSlots(hdr.headerSlots, payloadSlots, dec.slots, await scatterSeed(pass))
       : seqSlots(hdr.headerSlots, payloadSlots);
-    let bytes = readSlots(dec.data.data, dec.pxMap, slots, hdr.len, hdr.bits);
+    let bytes = readSlots(dec.data.data, hdr.order, slots, hdr.len, hdr.bits);
 
     if(hdr.encrypted){
       if(!pass) throw new Error('this message is encrypted - enter the passphrase');
@@ -1098,7 +1138,7 @@ $('decRun').addEventListener('click', async function(){
     $('decMsg').textContent = new TextDecoder().decode(bytes);
     $('decMeta').textContent =
       hdr.bits + ' bit' + (hdr.bits > 1 ? 's' : '') + ' per channel, ' +
-      (hdr.scattered ? 'scattered' : 'sequential') + ' placement, ' +
+      (hdr.scattered ? 'scattered' : hdr.centered ? 'centered' : 'sequential') + ' placement, ' +
       (hdr.encrypted ? 'AES-GCM encrypted' : 'not encrypted') + ', ' +
       hdr.len.toLocaleString() + ' bytes embedded.';
     $('decOut').classList.remove('hide');
