@@ -19,7 +19,7 @@ Built as a teaching tool. It shows you the bit planes, the capacity maths and th
 
 ## Usage
 
-Open `steg-lab.html` in a browser. That is the whole install.
+Open `index.html` in a browser. That is the whole install.
 
 **Hiding:** drop an image, type a message, optionally set a passphrase, click Hide message, download the PNG.
 
