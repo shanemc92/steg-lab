@@ -1,198 +1,664 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="terminal">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
 <title>steg-lab -- learn steganography by doing</title>
+
+<!-- Webfonts are off by default so the file works offline and from file://.
+     To turn them on, uncomment the two lines below.
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+-->
+
 <style>
-  :root{
-    --bg:#0b0e13; --panel:#0d1117; --panel2:#161b22; --panel3:#12171f;
-    --border:#30363d; --fg:#c9d1d9; --muted:#8b949e;
-    --accent:#58a6ff; --good:#2ea043; --good-fg:#ffffff;
-    --warn:#d29922; --bad:#f85149;
-    --font:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-    --radius:8px; --shadow:none;
-  }
-  html[data-theme="modern"]{
-    --bg:#e9f1ef; --panel:#ffffff; --panel2:#f1f5f4; --panel3:#f7faf9;
-    --border:#dfe7e5; --fg:#111827; --muted:#5b6b73;
-    --accent:#0f766e; --good:#0f766e; --good-fg:#ffffff;
-    --warn:#b45309; --bad:#b91c1c;
-    --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --radius:14px; --shadow:0 1px 2px rgba(15,23,42,.06);
-  }
 
-  *{box-sizing:border-box}
-  body{
-    margin:0; padding:14px 12px 60px; background:var(--bg); color:var(--fg);
-    font-family:var(--font); font-size:15px; line-height:1.55;
-    -webkit-text-size-adjust:100%;
-  }
-  .wrap{max-width:880px;margin:0 auto}
+/* ============================================================
+   steg-lab
+   One structural stylesheet driven by per-theme design tokens.
+   Two themes, same terminal styling, opposite palettes.
+   ============================================================ */
 
-  .themebar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:12px}
-  .themebar label{color:var(--muted);font-size:15px}
-  select,input[type=text],input[type=password],textarea{
-    font-family:var(--font); font-size:15px; color:var(--fg);
-    background:var(--panel2); border:1px solid var(--border);
-    border-radius:var(--radius); padding:8px 10px;
-  }
-  html[data-theme="modern"] select,
-  html[data-theme="modern"] input[type=text],
-  html[data-theme="modern"] input[type=password]{background:#fff}
-  select{padding-right:26px;max-width:100%}
-  .field select{width:100%}
-  textarea{width:100%;resize:vertical;font-family:var(--mono);min-height:130px}
-  input[type=text],input[type=password]{width:100%}
+:root {
+    --wrap: 880px;
+    --font: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
 
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:calc(var(--radius) + 4px);overflow:hidden;box-shadow:var(--shadow)}
-  .titlebar{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--panel2)}
-  .dots{display:flex;gap:8px;flex:0 0 auto}
-  .dots i{width:13px;height:13px;border-radius:50%;display:block}
-  .dots i:nth-child(1){background:#ff5f57}
-  .dots i:nth-child(2){background:#febc2e}
-  .dots i:nth-child(3){background:#28c840}
-  .t-term{font-family:var(--mono);color:var(--muted);font-size:17px}
-  .t-modern{display:none;font-size:30px;font-weight:700;letter-spacing:-.5px}
-  html[data-theme="modern"] .titlebar{border-bottom:0;background:transparent;padding:22px 20px 0}
-  html[data-theme="modern"] .dots{display:none}
-  html[data-theme="modern"] .t-term{display:none}
-  html[data-theme="modern"] .t-modern{display:block}
+/* ---------- Tokens: Dark (default) ---------- */
+:root,
+html[data-theme="dark"] {
+    --bg:          #0b0e14;
+    --card:        #161b25;
+    --sunken:      #11161f;
+    --raised:      #1b212d;
+    --line:        #262d3a;
+    --line-soft:   #1e2431;
+    --fg:          #c7ccd6;
+    --fg-dim:      #7b8496;
+    --fg-faint:    #59616f;
+    --accent:      #58a6ff;
+    --accent-soft: rgba(88, 166, 255, 0.14);
+    --accent-ink:  #06111f;
+    --toggle-on:   #3fb950;
+    --toggle-ink:  #06210c;
+    --radius:      10px;
+    --radius-sm:   6px;
+    --shadow:      0 18px 50px -18px rgba(0, 0, 0, 0.75);
+    --bad:         #f87171;
+    --warn:        #d29922;
+    --ok:          #3fb950;
+}
 
-  .body{padding:16px}
-  .lede{color:var(--muted);margin:0 0 16px}
-  .lede b{color:var(--accent);font-weight:inherit}
+/* ---------- Tokens: Light ---------- */
+html[data-theme="light"] {
+    --bg:          #e9edf2;
+    --card:        #ffffff;
+    --sunken:      #f3f5f8;
+    --raised:      #fbfcfd;
+    --line:        #d3dae3;
+    --line-soft:   #e5eaf0;
+    --fg:          #0e1620;
+    --fg-dim:      #5f6b7a;
+    --fg-faint:    #8b96a5;
+    --accent:      #0f766e;
+    --accent-soft: rgba(15, 118, 110, 0.10);
+    --accent-ink:  #ffffff;
+    --toggle-on:   #0f766e;
+    --toggle-ink:  #ffffff;
+    --radius:      10px;
+    --radius-sm:   6px;
+    --shadow:      0 1px 2px rgba(16, 24, 40, 0.05), 0 14px 36px -16px rgba(16, 24, 40, 0.28);
+    --bad:         #dc2626;
+    --warn:        #b45309;
+    --ok:          #0f766e;
+}
 
-  .tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-  .tab{
-    background:var(--panel2);border:1px solid var(--border);color:var(--fg);
-    border-radius:var(--radius);padding:10px 16px;font-family:var(--font);font-size:15px;cursor:pointer;
-  }
-  .tab[aria-selected="true"]{border-color:var(--accent);color:var(--accent);background:transparent}
-  html[data-theme="modern"] .tab{background:#f3f6f5}
-  html[data-theme="modern"] .tab[aria-selected="true"]{background:#eef6f4;color:var(--accent)}
+/* ============================================================
+   Base
+   ============================================================ */
+* { box-sizing: border-box; }
 
-  .panel{background:var(--panel3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
-  html[data-theme="modern"] .panel{background:var(--panel2);border-color:transparent}
-  .lbl{font-family:var(--mono);color:var(--muted);font-size:13px;letter-spacing:.06em;margin:0 0 10px}
-  .lbl span{color:var(--accent)}
+body {
+    margin: 0;
+    padding: 28px 20px 48px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 13.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
 
-  .drop{
-    border:1px dashed var(--border);border-radius:var(--radius);padding:26px 14px;text-align:center;
-    color:var(--muted);cursor:pointer;background:transparent;
-  }
-  html[data-theme="modern"] .drop{background:#fff;border-color:#cfdad7}
-  .drop b{display:block;color:var(--accent);font-weight:inherit;margin-bottom:4px}
-  .drop.over{border-color:var(--accent);border-style:solid}
+::selection { background: var(--accent); color: var(--accent-ink); }
+::placeholder { color: var(--fg-faint); opacity: 1; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  .act{
-    font-family:var(--font);font-size:15px;border-radius:var(--radius);
-    padding:10px 18px;cursor:pointer;border:1px solid transparent;
-  }
-  .go{background:var(--good);color:var(--good-fg)}
-  .ghost{background:var(--panel2);border-color:var(--border);color:var(--fg)}
-  html[data-theme="modern"] .ghost{background:#fff}
-  button.act:disabled{opacity:.45;cursor:not-allowed}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .row.tight{gap:8px}
+/* ============================================================
+   Window
+   ============================================================ */
+.container {
+    width: 100%;
+    max-width: var(--wrap);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
-  .stat{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:10px}
-  html[data-theme="modern"] .stat{background:#fff;border-color:var(--border)}
-  .stat .k{font-family:var(--mono);font-size:12px;color:var(--muted)}
-  .stat .v{font-family:var(--mono);font-size:18px}
+/* ---------- Title bar ---------- */
+.titlebar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 12px 11px 16px;
+    background: var(--sunken);
+    border-bottom: 1px solid var(--line-soft);
+}
+.dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
+.dot:nth-child(1) { background: #ff5f56; }
+.dot:nth-child(2) { background: #ffbd2e; }
+.dot:nth-child(3) { background: #27c93f; }
 
-  .bar{height:10px;background:var(--panel2);border:1px solid var(--border);border-radius:99px;overflow:hidden;margin:10px 0 6px}
-  .bar > i{display:block;height:100%;width:0;background:var(--good);transition:width .15s linear}
-  .bar.over > i{background:var(--bad)}
+.titlebar-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12.5px;
+    color: var(--fg-dim);
+    pointer-events: none;
+    white-space: nowrap;
+}
+.titlebar .spacer { flex: 1; }
 
-  .field{margin-bottom:12px}
-  .field > .lbl{margin-bottom:6px}
-  .hint{color:var(--muted);font-size:13px;margin-top:6px}
-  .ok{color:var(--good)} .warnt{color:var(--warn)} .bad{color:var(--bad)}
+/* ---------- Theme toggle ---------- */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 27px;
+    height: 27px;
+    padding: 0;
+    color: var(--fg-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+.icon-btn:hover { color: var(--accent); border-color: var(--line); }
+.icon-btn svg {
+    width: 15px; height: 15px;
+    fill: none; stroke: currentColor;
+    stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+}
+html[data-theme="dark"]  .ic-moon { display: none; }
+html[data-theme="light"] .ic-sun  { display: none; }
 
-  .thumbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-  .thumb{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:8px}
-  html[data-theme="modern"] .thumb{background:#fff}
-  .thumb canvas,.thumb img{width:100%;height:auto;display:block;border-radius:4px;image-rendering:pixelated;background:#000}
-  .thumb .cap{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px}
+/* ---------- Tab strip ---------- */
+.tabs {
+    display: flex;
+    padding: 0 8px;
+    background: var(--sunken);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--fg-dim);
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 9px 15px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.tab:hover { color: var(--fg); }
+.tab[aria-selected="true"] {
+    color: var(--accent);
+    background: var(--card);
+    border-bottom-color: var(--accent);
+}
 
-  .msgbox{
-    font-family:var(--mono);white-space:pre-wrap;word-break:break-word;
-    background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-height:60px;
-  }
-  html[data-theme="modern"] .msgbox{background:#fff}
+.body { padding: 20px 22px 24px; }
+section[hidden] { display: none; }
 
-  .note{border-left:2px solid var(--accent);padding:2px 0 2px 12px;color:var(--muted);margin:12px 0}
-  h3{font-size:16px;margin:18px 0 6px}
-  h3:first-child{margin-top:0}
-  .learn p{margin:8px 0;color:var(--muted)}
-  .learn code{font-family:var(--mono);color:var(--accent);font-size:13px}
-  .learn ul{margin:8px 0;padding-left:20px;color:var(--muted)}
-  .learn li{margin:4px 0}
-  table.bits{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;margin-top:10px}
-  table.bits th,table.bits td{border:1px solid var(--border);padding:5px 6px;text-align:left}
-  table.bits th{color:var(--muted);font-weight:normal}
-  .chg{color:var(--accent)}
-  footer{color:var(--muted);font-family:var(--mono);font-size:12px;text-align:center;margin-top:18px}
-  .hide{display:none !important}
+/* ---------- Prompt line ---------- */
+.prompt { margin-bottom: 6px; font-size: 13px; }
+.prompt .path { color: var(--accent); }
+.prompt .chev { color: var(--fg-faint); }
+.comment { color: var(--fg-faint); font-size: 12.5px; margin-bottom: 20px; }
 
-  .thumb canvas{cursor:zoom-in}
-  .lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.88);display:flex;flex-direction:column;gap:10px;padding:14px}
-  html[data-theme="modern"] .lb{background:rgba(15,23,42,.82)}
-  .lbbar,.lbnav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;color:#e6edf3}
-  .lbbar{justify-content:space-between}
-  .lbcap{font-family:var(--mono);font-size:14px;color:#e6edf3}
-  .lbchk{display:flex;align-items:center;gap:7px;font-size:14px;color:#e6edf3;cursor:pointer}
-  .lbchk input{width:17px;height:17px;accent-color:#2ea043}
-  .lbchk.off{opacity:.4;cursor:not-allowed}
-  .lb button{font-family:var(--font);font-size:14px;padding:8px 14px;border-radius:8px;cursor:pointer;
-    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e6edf3}
-  .lb button:disabled{opacity:.3;cursor:not-allowed}
-  .lbstage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
-  .lbstage canvas{display:block;image-rendering:pixelated;background:#000;border-radius:4px}
-  .lbcmp{position:relative;display:inline-block;touch-action:none;user-select:none;-webkit-user-select:none}
-  .lbclip{position:absolute;top:0;left:0;height:100%;overflow:hidden}
-  .lbclip canvas{position:absolute;top:0;left:0;border-radius:4px 0 0 4px}
-  .lbhandle{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.7);cursor:ew-resize}
-  .lbhandle::after{content:'';position:absolute;top:50%;left:50%;width:34px;height:34px;transform:translate(-50%,-50%);
-    border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(0,0,0,.6)}
-  .lbhandle::before{content:'';position:absolute;top:50%;left:50%;width:12px;height:2px;z-index:1;
-    transform:translate(-50%,-50%);border-top:2px solid #111;border-bottom:2px solid #111;height:8px}
-  .lbtag{position:absolute;bottom:8px;font-family:var(--mono);font-size:12px;color:#fff;
-    background:rgba(0,0,0,.6);padding:3px 8px;border-radius:4px;pointer-events:none}
-  .lbtag.l{left:8px} .lbtag.r{right:8px}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* ============================================================
+   Sections
+   ============================================================ */
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.section-header span {
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+}
+.section-header span::before { content: '// '; color: var(--fg-faint); }
+
+.panel {
+    background: var(--sunken);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+/* ============================================================
+   Controls
+   ============================================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 13px;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--fg);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.btn:active { transform: scale(0.985); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn:disabled:hover { color: var(--fg); border-color: var(--line); background: var(--raised); }
+
+.btn-primary { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.btn-primary:hover { color: var(--accent-ink); background: var(--accent); filter: brightness(1.12); }
+.btn-danger:hover { color: var(--bad); border-color: var(--bad); background: transparent; }
+.btn-sm { padding: 5px 9px; font-size: 12px; }
+
+/* ---------- Inputs ---------- */
+.field {
+    width: 100%;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--fg);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+.field:hover { border-color: var(--fg-faint); }
+.field:focus { border-color: var(--accent); }
+textarea.field { line-height: 1.6; resize: vertical; }
+select.field { cursor: pointer; }
+
+label.f {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+}
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.spacer { flex: 1; }
+
+/* ---------- Toggle rows ---------- */
+.toggle-group { display: flex; flex-direction: column; gap: 12px; }
+.toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 30px;
+}
+.toggle-label { font-size: 12.5px; color: var(--fg); }
+
+.toggle-switch {
+    position: relative;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s;
+}
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--fg-faint);
+    transition: transform 0.18s, background 0.18s;
+}
+.toggle-switch.active { background: var(--toggle-on); border-color: var(--toggle-on); }
+.toggle-switch.active::after { transform: translateX(18px); background: var(--toggle-ink); }
+
+/* ---------- Drop zone ---------- */
+.drop {
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-sm);
+    padding: 22px 14px;
+    text-align: center;
+    color: var(--fg-dim);
+    background: var(--raised);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.drop:hover, .drop.over { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.drop b { display: block; margin-bottom: 2px; color: var(--fg); font-weight: 500; }
+.drop:hover b { color: var(--accent); }
+
+/* ---------- Text ---------- */
+pre {
+    margin: 0;
+    padding: 12px;
+    max-height: 340px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12.5px;
+    line-height: 1.6;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+}
+code { font-size: 12px; }
+mark { background: var(--accent-soft); color: var(--accent); border-radius: 3px; padding: 1px 3px; }
+.log { font-size: 12px; color: var(--fg-dim); }
+.log .ok { color: var(--ok); } .log .warn { color: var(--warn); }
+.log .bad { color: var(--bad); } .log .a { color: var(--accent); }
+.note { font-size: 11.5px; line-height: 1.65; color: var(--fg-dim); }
+.note code { color: var(--accent); }
+
+/* ---------- Table ---------- */
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th {
+    text-align: left;
+    padding: 8px;
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--fg-dim);
+    border-bottom: 1px solid var(--line);
+}
+td { padding: 6px 8px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+td .field { padding: 5px 8px; }
+.empty {
+    padding: 26px;
+    text-align: center;
+    color: var(--fg-dim);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   Notification
+   ============================================================ */
+.notification {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+    z-index: 300;
+    padding: 10px 18px;
+    font-size: 12.5px;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s, transform 0.22s;
+}
+.notification.show { opacity: 1; transform: translate(-50%, 0); }
+.notification.error { color: #fff; background: var(--bad); }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 640px) {
+    body { padding: 14px 10px 32px; }
+    .body { padding: 16px; }
+    .titlebar-title { display: none; }
+    .grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}
+
+/* ============================================================
+   Print: one light palette for both themes
+   ============================================================ */
+@media print {
+    :root, html[data-theme="dark"], html[data-theme="light"] {
+        color-scheme: light;
+        --bg: #ffffff; --card: #ffffff; --sunken: #fafafa; --raised: #ffffff;
+        --line: #999999; --line-soft: #cccccc;
+        --fg: #111111; --fg-dim: #555555; --fg-faint: #777777;
+        --accent: #0b4f8a; --accent-soft: transparent; --accent-ink: #ffffff;
+        --shadow: none;
+    }
+    body { padding: 0; display: block; }
+    .container { max-width: none; border: none; box-shadow: none; }
+    .titlebar, .tabs, .drop, .notification, .btn, .noprint { display: none !important; }
+    .body { padding: 0; }
+    section[hidden] { display: block !important; }
+    .panel { break-inside: avoid; page-break-inside: avoid; }
+    a[href]::after { content: " (" attr(href) ")"; font-size: 10px; color: #555; }
+}
+
+
+/* ============================================================
+   steg-lab specifics
+   ============================================================ */
+
+/* ---------- Inputs (bare elements, not .field) ---------- */
+select, input[type=text], input[type=password], textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--fg);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+select:hover, input[type=text]:hover, input[type=password]:hover, textarea:hover { border-color: var(--fg-faint); }
+select:focus, input[type=text]:focus, input[type=password]:focus, textarea:focus { border-color: var(--accent); }
+select { cursor: pointer; padding-right: 26px; max-width: 100%; }
+textarea { resize: vertical; line-height: 1.6; min-height: 120px; }
+
+/* ---------- Labels / hints ---------- */
+.lbl {
+    margin: 0 0 10px;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+}
+.lbl span { color: var(--fg-faint); }
+.field { margin-bottom: 12px; width: auto; background: none; border: 0; padding: 0; }
+.field > .lbl { margin-bottom: 6px; }
+.field select { width: 100%; }
+.hint { margin-top: 8px; font-size: 11.5px; line-height: 1.65; color: var(--fg-dim); }
+.ok { color: var(--ok); } .warnt { color: var(--warn); } .bad { color: var(--bad); }
+
+/* ---------- Buttons ---------- */
+.act {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--fg);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.act:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.act:active { transform: scale(0.985); }
+.act.go { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.act.go:hover { color: var(--accent-ink); background: var(--accent); filter: brightness(1.12); }
+button.act:disabled { opacity: 0.55; cursor: default; }
+button.act:disabled:hover { color: var(--fg); border-color: var(--line); background: var(--raised); }
+.row.tight { gap: 8px; }
+
+/* ---------- Stats / capacity bar ---------- */
+.grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stat {
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+}
+.stat .k { font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--fg-dim); }
+.stat .v { font-size: 16px; color: var(--fg); }
+
+.bar {
+    height: 8px;
+    margin: 12px 0 6px;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.bar > i { display: block; height: 100%; width: 0; background: var(--ok); transition: width 0.15s linear; }
+.bar.over > i { background: var(--bad); }
+
+/* ---------- Previews ---------- */
+.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.thumb {
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+}
+.thumb canvas, .thumb img {
+    width: 100%; height: auto; display: block;
+    border-radius: 4px;
+    image-rendering: pixelated;
+    background: #000;
+}
+.thumb canvas { cursor: zoom-in; }
+.thumb .cap { margin-top: 6px; font-size: 11px; color: var(--fg-dim); }
+
+.msgbox {
+    padding: 12px;
+    min-height: 60px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12.5px;
+    line-height: 1.6;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+}
+
+/* ---------- Learn tab ---------- */
+h3 { margin: 20px 0 6px; font-size: 13.5px; font-weight: 600; color: var(--fg); }
+h3:first-child { margin-top: 0; }
+.learn p { margin: 8px 0; font-size: 12.5px; line-height: 1.7; color: var(--fg-dim); }
+.learn code { color: var(--accent); font-size: 12px; }
+.learn b { color: var(--fg); font-weight: 600; }
+.learn ul { margin: 8px 0; padding-left: 20px; font-size: 12.5px; line-height: 1.7; color: var(--fg-dim); }
+.learn li { margin: 4px 0; }
+table.bits { margin-top: 10px; font-size: 12px; }
+table.bits th, table.bits td { border: 1px solid var(--line); padding: 5px 6px; text-align: left; }
+table.bits th { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 11px; }
+.chg { color: var(--accent); }
+.note { border-left: 2px solid var(--accent); padding: 2px 0 2px 12px; margin: 14px 0 0; }
+
+.hide { display: none !important; }
+
+/* ---------- Lightbox ---------- */
+.lb {
+    position: fixed; inset: 0; z-index: 400;
+    display: flex; flex-direction: column; gap: 10px; padding: 14px;
+    background: rgba(2, 4, 8, 0.9);
+    backdrop-filter: blur(3px);
+}
+.lbbar, .lbnav {
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap; justify-content: center;
+    color: #e6edf3;
+}
+.lbbar { justify-content: space-between; }
+.lbcap { font-size: 12.5px; color: #e6edf3; }
+.lbchk { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #e6edf3; cursor: pointer; }
+.lbchk input { width: 16px; height: 16px; accent-color: var(--accent); }
+.lbchk.off { opacity: 0.4; cursor: not-allowed; }
+.lb button {
+    font: inherit; font-size: 12.5px;
+    padding: 7px 13px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #e6edf3;
+}
+.lb button:hover { border-color: var(--accent); color: var(--accent); }
+.lb button:disabled { opacity: 0.3; cursor: not-allowed; }
+.lbstage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+.lbstage canvas { display: block; image-rendering: pixelated; background: #000; border-radius: 4px; }
+.lbcmp { position: relative; display: inline-block; touch-action: none; user-select: none; -webkit-user-select: none; }
+.lbclip { position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; }
+.lbclip canvas { position: absolute; top: 0; left: 0; border-radius: 4px 0 0 4px; }
+.lbhandle { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 6px rgba(0,0,0,.7); cursor: ew-resize; }
+.lbhandle::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 34px; height: 34px; transform: translate(-50%, -50%);
+    border-radius: 50%; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,.6);
+}
+.lbhandle::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 12px; height: 8px; z-index: 1; transform: translate(-50%, -50%);
+    border-top: 2px solid #111; border-bottom: 2px solid #111;
+}
+.lbtag {
+    position: absolute; bottom: 8px;
+    font-size: 11px; color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 3px 8px; border-radius: 4px;
+    pointer-events: none;
+}
+.lbtag.l { left: 8px; } .lbtag.r { right: 8px; }
+
+footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: center; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="themebar">
-    <label for="theme">Theme</label>
-    <select id="theme">
-      <option value="terminal">Terminal</option>
-      <option value="modern">Modern</option>
-    </select>
-  </div>
+<div class="container">
 
-  <div class="card">
     <div class="titlebar">
-      <div class="dots"><i></i><i></i><i></i></div>
-      <div class="t-term">steg-lab -- hide messages inside images</div>
-      <div class="t-modern">Steg-lab</div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="titlebar-title">steg-lab.sh</div>
+        <div class="spacer"></div>
+        <button class="icon-btn" id="themeBtn" type="button" aria-pressed="false" title="Switch theme">
+            <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="4.2"></circle>
+                <path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path>
+            </svg>
+            <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z"></path>
+            </svg>
+        </button>
     </div>
+
+    <div class="tabs" role="tablist">
+        <button class="tab" id="tab-encode" role="tab" aria-selected="true" data-view="encode">1 &middot; hide</button>
+        <button class="tab" id="tab-decode" role="tab" aria-selected="false" data-view="decode">2 &middot; reveal</button>
+        <button class="tab" id="tab-learn"  role="tab" aria-selected="false" data-view="learn">3 &middot; how it works</button>
+    </div>
+
     <div class="body">
 
-      <p class="lede"><b>Everything runs in this tab.</b> No uploads, no network calls. The image never leaves your device.<br>
-      The point: hide a message in the pixels of an image so the file still looks normal, then pull it back out later. Save the result as PNG - re-saving as JPEG destroys the message.</p>
-
-      <div class="tabs" role="tablist">
-        <button class="tab" id="tab-encode" role="tab" aria-selected="true" data-view="encode">1 &middot; Hide</button>
-        <button class="tab" id="tab-decode" role="tab" aria-selected="false" data-view="decode">2 &middot; Reveal</button>
-        <button class="tab" id="tab-learn"  role="tab" aria-selected="false" data-view="learn">3 &middot; How it works</button>
-      </div>
+        <div class="prompt"><span class="path">~/steg-lab</span> <span class="chev">&gt;</span> hide messages inside images</div>
+        <div class="comment"># everything runs in this tab, the image never leaves your device &mdash; save the result as PNG, re-saving as JPEG destroys the message</div>
 
       <!-- ============ ENCODE ============ -->
       <section id="view-encode">
@@ -236,6 +702,7 @@
                 <option value="scatter">scattered (needs passphrase)</option>
                 <option value="centered">centered (survives edge overwrites)</option>
                 <option value="hardened">hardened (passphrase required)</option>
+                <option value="robust">robust (survives recompression)</option>
               </select>
             </div>
           </div>
@@ -308,10 +775,10 @@
       <section id="view-learn" class="hide">
         <div class="panel learn">
           <h3>The idea</h3>
-          <p>Cryptography hides what a message says. Steganography hides that a message exists at all. A stego image looks like an ordinary photo to anyone who receives it.</p>
+          <p>Cryptography hides what a message says. Steganography hides that a message exists at all. A stego image looks identical to the original to anyone who receives it - only someone who knows to look, and knows how, can find anything.</p>
 
           <h3>Least significant bit (LSB)</h3>
-          <p>Each pixel stores red, green and blue as a number from 0 to 255. Changing the last bit shifts a channel by 1 out of 256 - far below what an eye can see. That spare bit is where the message goes.</p>
+          <p>Each pixel stores red, green and blue as a number from 0 to 255. Changing the last bit shifts a channel by 1 in 256 - a difference the eye cannot perceive. That spare bit is where a message goes in every mode except robust.</p>
           <p>Type a character to watch it happen:</p>
           <div class="row tight" style="margin-top:8px">
             <input type="text" id="demoChar" maxlength="1" value="A" style="width:70px;text-align:center;font-family:var(--mono)">
@@ -321,50 +788,49 @@
 
           <h3>How much fits</h3>
           <p><code>width x height x 3 channels x bits per channel / 8 = bytes</code></p>
-          <p>A 12 megapixel photo holds roughly 4.5 MB at one bit per channel - far more text than anyone needs. Using 2 or 3 bits multiplies capacity but the noise starts to become visible in flat areas like skies.</p>
+          <p>A 12 megapixel photo holds roughly 4.5 MB at one bit per channel - far more than anyone is likely to need. Raising to 2 or 3 bits per channel multiplies the capacity, but the change starts to show as noise in smooth areas like skies.</p>
 
           <h3>Why PNG and not JPEG</h3>
-          <p>PNG is lossless: every pixel value survives a save. JPEG throws away detail it thinks you cannot see, and the last bit of each channel is exactly what it discards first. You can load a JPEG here, but the output has to be PNG.</p>
+          <p>PNG is lossless: every pixel value is preserved exactly when the file is saved. JPEG discards fine detail it assumes you cannot see - and the last bit of each channel is precisely what it discards first. You can load a JPEG as the starting image here, but the output must be saved as PNG. Any platform that re-compresses the image (most messaging apps and social networks do) will destroy the message. Send the PNG as a file attachment.</p>
 
-          <h3>Sequential vs scattered</h3>
-          <p>Sequential fills channels in order from the top-left. It is simple and it is also the first thing an analyst looks for - the change is a solid block at the start of the image.</p>
-          <p>Scattered spreads the bits across the whole image using gaps derived from your passphrase. Without the passphrase the positions are unknown, and the changes look like ordinary sensor noise rather than a block.</p>
-          <p>The position sequence is stretched from the passphrase with PBKDF2, the same way the encryption key is, so guessing positions costs an attacker the same work as guessing the key. Even so, scattering hides the shape of the data rather than its contents - keeping it secret is the encryption's job.</p>
-          <p>Centered fills outward from the middle of the image, ordering pixels by distance from the centre. It needs no passphrase because the ordering is fixed by the image dimensions. Its one job is surviving edge OVERWRITES - a caption bar, a logo stamp, letterboxing - that paint over the border while keeping the image the same size. It does NOT survive cropping: a crop changes width and height, which re-indexes every pixel, so the reader can no longer locate any bit regardless of where it was placed. True crop resistance needs frequency-domain watermarking with a synchronisation pattern, which is a different technique with far lower capacity and is out of scope here.</p>
+          <h3>Placement modes</h3>
+          <p><b>Sequential</b> fills channels in scan order from the top-left pixel. It is the simplest possible approach and the first thing an analyst checks - the changed bits form a solid block at the start of the image that stands out clearly in a bit-plane view.</p>
+          <p><b>Centered</b> orders pixels by their distance from the image centre, filling outward. This moves the message away from the edges that are most likely to be overwritten by caption bars, watermarks, or letterboxing. It does not help against cropping, which changes the image dimensions and re-indexes every pixel, making it impossible to locate any bit no matter where it was placed.</p>
+          <p><b>Scattered</b> spreads bits across the image using gaps derived from your passphrase. The gap sequence comes from a 128-bit seed produced by PBKDF2-SHA256 (150k iterations), so finding the positions costs the same effort as guessing the passphrase itself. The changes appear as random sensor noise rather than a locatable block.</p>
+          <p><b>Hardened</b> adds two further changes on top of scatter. First, LSB matching: when a channel's last bit already equals the target, the pixel is left completely untouched; when it does not, the value is nudged ±1 at random rather than forced to the target. Standard LSB replacement creates a statistical imbalance between adjacent value pairs (0/1, 2/3, 4/5...) that chi-square and Sample Pair Analysis detect without even knowing where the bits are; LSB matching eliminates that imbalance. Second, no plaintext header: there is no magic string, no bit-depth byte, no length field in the clear. A random 16-byte salt embedded at the start drives one PBKDF2 derivation that produces two AES-256-GCM keys and a scatter seed. The message length is stored as its own AES-GCM ciphertext. A decoder with the wrong passphrase gets an authentication-tag failure - the same outcome as an image with nothing in it. A passphrase is mandatory.</p>
 
-          <h3>Layer encryption underneath</h3>
-          <p>Hiding is not protecting. Anyone who guesses the method reads the message. With a passphrase set, steg-lab encrypts with AES-GCM (PBKDF2-SHA256, 150k iterations) before embedding, so extracting the bits gives an attacker nothing but noise.</p>
+          <h3>Encryption</h3>
+          <p>Hiding is not the same as protecting. Without encryption, anyone who knows the embedding method can read the message. With a passphrase set, steg-lab encrypts the payload with AES-GCM before it is embedded, using a key derived by PBKDF2-SHA256 at 150k iterations. Extracting the embedded bits then gives an attacker only ciphertext. In hardened mode two independent 256-bit keys are used: one for the encrypted length block, one for the payload.</p>
 
-          <h3>Hardened mode</h3>
-          <p>Select "hardened" from the placement dropdown. Two things change versus standard mode:</p>
-          <ul>
-            <li><b>LSB matching.</b> When a channel's last bit already matches the message bit, the pixel is left untouched. When it does not, the value is nudged +1 or -1 at random rather than forced to the target. Chi-square and Sample Pair Analysis detect the value-pair imbalance that LSB replacement creates; LSB matching does not produce that imbalance, so those attacks find nothing.</li>
-            <li><b>No plaintext header.</b> There is no magic string, no bit-depth byte, no length field in the clear. A random 16-byte salt sits in the first 128 channels and feeds one PBKDF2-SHA256 derivation (150k iterations) that yields two AES-256-GCM keys plus a scatter seed. The payload length is stored as its own AES-256-GCM ciphertext in the next 256 channels; the payload itself is encrypted and scattered across the rest of the image using the keyed seed. A decoder with the wrong passphrase gets an authentication-tag failure, the same result as an image with nothing hidden in it. There is nothing to grep for.</li>
-          </ul>
-          <p>Note on placement: the salt and length blocks live at fixed positions so they always survive embedding, and the payload is scattered by the passphrase-derived seed. This spreads the message across the whole frame without a fixed pattern, but it is content-blind - it does not steer bits toward busy regions, because any content-based ordering shifts when embedding perturbs the pixels and would not be reproducible on decode.</p>
-          <p>The trade-off: a passphrase is mandatory, and a receiver who does not have it cannot even confirm a message exists. That is usually the point.</p>
+          <h3>Robust mode</h3>
+          <p>Every LSB mode dies to lossy recompression. JPEG randomises roughly half the low bits and no error-correction scheme recovers from a 50% bit error rate. Resizing is worse - interpolation produces pixel values that never existed in the original, so the stored bits are gone entirely.</p>
+          <p>Surviving that requires embedding in something that compression and resampling both preserve: aggregate statistics rather than individual pixel values. Robust mode divides the image into a grid of cells whose boundaries are defined as fractions of the image dimensions, so a uniform resize keeps them aligned. Within each cell the message bit is carried by a smooth two-dimensional ripple:</p>
+          <p><code>sin(4 &middot; 2&pi; &middot; u) &middot; sin(4 &middot; 2&pi; &middot; v)</code></p>
+          <p>where u and v run 0 to 1 across the cell. The bit is recovered by correlating the received cell against that same pattern - a matched filter, which averages the signal over every pixel in the cell and discards most of the compression noise. The ripple reaches zero at every cell boundary, so there are no seams between cells. Embedding strength follows local texture: busy cells absorb a stronger push invisibly; flat cells like skies get the minimum, capped further by the flattest quadrant within the cell so the ripple never spills from a textured area into a smooth one.</p>
+          <p>Each frame bit is spread across about five cells rather than one, chosen by a prime stride so the votes are distributed across the whole image rather than clustered in a column. The decoder tallies the correlation from every cell by confidence-weighted voting and checks a CRC-16 over the recovered frame. The grid size is chosen automatically (coarsest that fits the message, since coarser cells survive harder resizing), and the decoder tries each candidate grid in turn - the CRC says which one is right, so the grid never has to be stored anywhere.</p>
+          <p>The trade-offs are real: capacity is tens of bytes rather than megabytes; the embedding is slightly visible under close inspection (though not as a pattern or block); there is no encryption layer; and it still does not survive cropping. For a short code or identifier that needs to persist through social-network recompression it is the right tool. For a message, the free fix is to send the PNG as a file attachment rather than a photo, which preserves it exactly.</p>
 
           <h3>How hidden messages get caught</h3>
           <ul>
-            <li>Bit-plane view - isolate the lowest bit and look for static where structure should be. The Reveal tab does this.</li>
-            <li>Chi-square and RS analysis - LSB embedding pushes the counts of value pairs (0/1, 2/3, 4/5 ...) toward equal, which is statistically odd for a real photo.</li>
-            <li>File size and history - a 4 MB PNG of something that should have been a 400 KB JPEG raises questions on its own.</li>
-            <li>Comparison - if the original image exists anywhere, a diff ends the discussion immediately.</li>
+            <li>Bit-plane view - isolate the lowest bit of every channel and look for structured noise where a photo should show smooth gradients. The Reveal tab does this, and a solid block at the top-left is a definitive sign of sequential LSB.</li>
+            <li>Chi-square and RS analysis - LSB replacement makes pairs of adjacent values (0 and 1, 2 and 3, ...) artificially equal in frequency. Natural images do not have this property. These tests detect it without knowing anything about the message or its position.</li>
+            <li>File size and history - a 4 MB PNG of a scene that should have produced a 400 KB JPEG is suspicious on its own.</li>
+            <li>Comparison - if the original image is available anywhere, a pixel-by-pixel difference immediately reveals every changed channel.</li>
           </ul>
 
-          <h3>Other techniques worth knowing</h3>
+          <h3>Other techniques</h3>
           <ul>
-            <li>Scattered LSB with a keyed position sequence - both the scattered and hardened modes here. Adaptive/content-aware placement (steering bits into busy regions) is a real technique too, but it needs the cover and stego images to agree on an ordering the embedding does not disturb - harder than it looks, and out of scope here.</li>
-            <li>DCT coefficient embedding (JPEG) - hides data in frequency coefficients instead of pixels, so it survives JPEG compression. F5 and OutGuess work this way.</li>
-            <li>Palette manipulation in GIF/PNG-8 - reorder or nudge palette entries rather than pixel data.</li>
-            <li>Metadata fields - EXIF comments, PNG tEXt chunks. Trivial to do, trivial to find, and stripped by most upload pipelines.</li>
-            <li>Alpha channel embedding - works, but transparency is rare and often mangled by browsers and editors, so it is fragile.</li>
-            <li>Audio and video - LSB in PCM samples, echo hiding, phase coding.</li>
+            <li>DCT coefficient embedding (JPEG) - embeds data in frequency coefficients rather than pixel values, so it survives JPEG compression. F5 and OutGuess work this way.</li>
+            <li>Palette manipulation in GIF and PNG-8 - reorder or nudge palette entries rather than pixel data directly.</li>
+            <li>Metadata fields - EXIF comments, PNG tEXt chunks. Trivial to insert, trivial to find, and stripped by almost every upload pipeline.</li>
+            <li>Alpha channel embedding - the transparency channel can carry bits, but semi-transparent pixels are frequently mangled by browsers and image editors, making it fragile in practice.</li>
+            <li>Audio and video - LSB embedding in PCM audio samples, echo hiding, and phase coding are the audio equivalents of what this tool does for images.</li>
           </ul>
 
-          <h3>Format used here</h3>
-          <p>A 9-byte header goes in first, sequentially: <code>STG1</code> magic, one flags byte (bit depth, scattered, encrypted), then a 4-byte length. The payload follows. The reader tries bit depths 1 to 3 and checks the magic, so nothing has to be remembered except the passphrase.</p>
-          <p>Note the trade-off: the header itself is always sequential and unencrypted. That is what makes decoding effortless, and it also means the tool announces itself to anyone who looks for that magic. Real covert channels do not include a signature. Hardened mode has no header - it uses an AES-GCM tag failure to signal 'wrong passphrase or no message', with no other distinguishing feature.</p>
+          <h3>Wire format reference</h3>
+          <p><b>Standard modes (sequential, centered, scattered).</b> A 9-byte header written from the first usable channel: four magic bytes <code>STG1</code>, one flags byte (bits 0-1 = bit depth minus 1, bit 2 = scattered, bit 3 = encrypted, bit 4 = centered), then a 4-byte big-endian payload length. The payload follows. The decoder tries bit depths 1 to 3 and checks the magic - nothing needs to be communicated separately except the passphrase.</p>
+          <p><b>Hardened mode.</b> No header. Slots 0-127 hold a random 16-byte PBKDF2 salt. Slots 128-383 hold the AES-GCM-encrypted payload length (IV + 4-byte ciphertext + 16-byte tag = 32 bytes). Slots 384+ hold the AES-GCM-encrypted payload, scattered by a seed derived from the same PBKDF2 pass. The decoder reads the salt, derives the keys and scatter seed, decrypts the length, then reads and decrypts the payload. Failure at any AES-GCM step is indistinguishable from an image with no message.</p>
+          <p><b>Robust mode.</b> No header. A frame of 1 length byte + message bytes + CRC-16 is written as a sinusoidal ripple across a relative grid. The grid is one of [16, 24, 32, 48, 64, 96] cells per axis, chosen as the coarsest that fits the message and whose cells are at least 30px wide. Frame bits are mapped to cells by a prime-stride permutation. The decoder tries each grid; the CRC validates the result.</p>
         </div>
       </section>
 
@@ -397,20 +863,23 @@
   </div>
 
   <footer>steg-lab &middot; runs entirely in your browser &middot; teaching tool, not an operational one</footer>
-</div>
 
 <script>
 "use strict";
 
 /* ---------- theme ---------- */
-const themeSel = document.getElementById('theme');
-try{ const t = localStorage.getItem('steglab-theme'); if(t) themeSel.value = t; }catch(e){}
-function applyTheme(){
-  document.documentElement.setAttribute('data-theme', themeSel.value);
-  try{ localStorage.setItem('steglab-theme', themeSel.value); }catch(e){}
+const themeBtn = document.getElementById('themeBtn');
+function applyTheme(t){
+  if(t !== 'dark' && t !== 'light') t = 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  themeBtn.setAttribute('aria-pressed', String(t === 'light'));
+  themeBtn.title = t === 'dark' ? 'Switch to light' : 'Switch to dark';
+  try{ localStorage.setItem('steglab-theme', t); }catch(e){}
 }
-themeSel.addEventListener('change', applyTheme);
-applyTheme();
+themeBtn.addEventListener('click', function(){
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+applyTheme((function(){ try{ return localStorage.getItem('steglab-theme') || 'dark'; }catch(e){ return 'dark'; } })());
 
 /* ---------- tabs ---------- */
 const views = {encode:document.getElementById('view-encode'),decode:document.getElementById('view-decode'),learn:document.getElementById('view-learn')};
@@ -660,6 +1129,231 @@ function varianceScore(data, width, height, pxMap) {
   return sc;
 }
 
+/* ---------- robust mode: block-mean modulation ----------
+   Survives lossy recompression and uniform resizing by embedding in aggregate
+   statistics rather than individual pixels. The image is divided into a grid of
+   cells defined as FRACTIONS of the dimensions, so a uniform resize keeps the
+   grid aligned. Within each cell the bit is carried by a smooth 2D sinusoidal
+   pattern, sin(2*pi*F*u) * sin(2*pi*F*v) over the cell, and read back by
+   correlating the cell against that same pattern - a matched filter.
+
+   Why a smooth pattern rather than a hard block split: the eye responds to
+   STRUCTURE far more than amplitude. A blocky pattern with sharp steps at cell
+   and quadrant boundaries is glaringly visible even at tiny amplitudes, because
+   edges are exactly what vision is tuned to find. This basis falls to zero at
+   every cell boundary, so there are no seams at all, and the matched filter
+   gains roughly sqrt(N) over the cell, so the amplitude can be far lower for the
+   same reliability.
+
+   Why F=4 rather than 1: natural image energy falls off steeply with frequency,
+   so at F=4 the content already sitting in the basis is about 20x weaker than at
+   F=1 (median |correlation| 0.35 against 6.75 on a test photo). Less natural
+   content to cancel means a much smaller correction per cell - the change drops
+   from a mean of ~5/255 to under 1.5 - and, because there is less interference,
+   detection is also more reliable, not less.
+
+   Grid size scales with the image, so bigger pictures carry more. The decoder
+   cannot know the grid (a resize changes the pixel dimensions), so it tries each
+   candidate and lets the CRC decide - the same trick the standard decoder uses
+   for bit depth. Coarse grids are tried first because they are the common case.
+
+   Embedding strength is set per cell from local texture. Busy cells hide a large
+   change easily; flat cells (skies, walls) get the minimum, which is exactly
+   where blocking would otherwise show. The decoder weights each vote by its
+   confidence, so lightly-marked flat cells simply count for less. */
+const RB_GRIDS    = [16, 24, 32, 48, 64, 96];
+const RB_MIN_CELL = 30;    // smallest cell edge in px when choosing a grid
+const RB_REPEATS  = 5;     // cells carrying each frame bit
+const RB_MAX_BITS = 1024;  // frame cap (128 bytes)
+const RB_MIN_PX   = 16;    // a cell needs this many opaque pixels to be written
+const RB_STRIDE   = 7919;  // prime, coprime with every G*G we use
+const RB_FREQ = 4;                            // cycles of the basis across a cell
+// Amplitude follows local texture, but through TWO measures rather than one.
+// The main curve uses the whole cell's spread. That alone misbehaves on a cell
+// straddling a flat/busy boundary: the average looks textured, so the ripple
+// goes in loud and lands half of itself in the smooth part, which is exactly
+// where it shows. So the result is also capped by the QUIETEST quadrant of the
+// cell - if any quarter of it is flat, the whole cell stays gentle.
+// Deliberately NOT a hard skip of flat cells: an on/off rule makes coverage
+// patchy, and a visible change in texture density is a stronger cue than a
+// faint uniform one. This falls off continuously instead.
+const RB_AMP_MIN = 0.6, RB_AMP_MAX = 11;
+const RB_AMP_BASE = 0.4, RB_AMP_K = 0.22;     // curve on whole-cell spread
+const RB_CAP_BASE = 1.0, RB_CAP_K = 0.55;     // ceiling from the quietest quadrant
+
+// coarsest-to-finest; the largest grid whose cells stay >= RB_MIN_CELL px
+function rbGridFor(w, h){
+  const fit = Math.min(w, h) / RB_MIN_CELL;
+  let g = 0;
+  for(const c of RB_GRIDS) if(c <= fit) g = c;
+  return g;                                   // 0 = image too small
+}
+function rbFrameBits(G){
+  const bits = Math.floor(G * G / RB_REPEATS) & ~7;   // whole bytes
+  return Math.max(32, Math.min(RB_MAX_BITS, bits));
+}
+function rbMaxMsg(w, h){
+  const G = rbGridFor(w, h);
+  if(!G) return 0;
+  return rbFrameBits(G) / 8 - 3;              // less length byte + CRC-16
+}
+// coarsest grid that still fits the message: coarse cells survive harder resizing
+function rbPickGrid(w, h, msgLen){
+  const top = rbGridFor(w, h);
+  if(!top) return 0;
+  for(const G of RB_GRIDS){
+    if(G > top) break;
+    if(msgLen <= rbFrameBits(G)/8 - 3) return G;
+  }
+  return 0;
+}
+// strength from local texture; the decoder reads only the sign of the
+// correlation, so it never needs to know what amplitude was used
+function rbAmp(std, minStd){
+  const curve = RB_AMP_BASE + RB_AMP_K * std;
+  const cap   = RB_CAP_BASE + RB_CAP_K * minStd;
+  return Math.max(RB_AMP_MIN, Math.min(RB_AMP_MAX, Math.min(curve, cap)));
+}
+// smooth basis, zero at every cell boundary so no seams appear
+function rbBasis(u, v){
+  return Math.sin(2*Math.PI*RB_FREQ*u) * Math.sin(2*Math.PI*RB_FREQ*v);
+}
+
+function crc16(bytes){
+  let crc = 0xFFFF;
+  for(let i=0;i<bytes.length;i++){
+    crc ^= bytes[i] << 8;
+    for(let b=0;b<8;b++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+  }
+  return crc;
+}
+
+// Which frame bit a cell carries. The naive choice, cellIndex % bits, clusters
+// every vote for a bit into one column whenever the grid width divides evenly by
+// the bit count - so one damaged column wipes out every vote for those bits.
+// Multiplying by a prime coprime with the cell count permutes the cells first,
+// scattering each bit's votes across the whole frame.
+function rbBitFor(idx, cells, bits){
+  return ((idx * RB_STRIDE) % cells) % bits;
+}
+
+// Correlation of the cell against the basis (the matched filter), plus two
+// texture measures for perceptual masking: the whole cell's spread, and the
+// spread of its quietest quadrant. c is the projection - its sign is the bit,
+// its magnitude the confidence.
+function rbCellStats(data, w, x0, x1, y0, y1){
+  const W=x1-x0, H=y1-y0;
+  const xm=(x0+x1)>>1, ym=(y0+y1)>>1;
+  let num=0, den=0, n=0;
+  const qs=[0,0,0,0], q2=[0,0,0,0], qn=[0,0,0,0];
+  for(let y=y0;y<y1;y++){
+    for(let x=x0;x<x1;x++){
+      const p=(y*w+x)*4;
+      if(data[p+3]!==255) continue;             // skip non-opaque
+      const lum=(data[p]+data[p+1]+data[p+2])/3;
+      const b=rbBasis((x-x0+0.5)/W, (y-y0+0.5)/H);
+      num+=lum*b; den+=b*b; n++;
+      const qi=(x<xm?0:1)+(y<ym?0:2);
+      qs[qi]+=lum; q2[qi]+=lum*lum; qn[qi]++;
+    }
+  }
+  let tot=0, sum=0, sq=0, minStd=Infinity;
+  for(let i=0;i<4;i++){
+    tot+=qn[i]; sum+=qs[i]; sq+=q2[i];
+    if(qn[i]<8) continue;
+    const m=qs[i]/qn[i];
+    const sd=Math.sqrt(Math.max(0, q2[i]/qn[i]-m*m));
+    if(sd<minStd) minStd=sd;
+  }
+  if(!isFinite(minStd)) minStd=0;
+  const mean = tot?sum/tot:0;
+  return {n:n, c: den?num/den:0,
+          std: Math.sqrt(Math.max(0, tot?sq/tot-mean*mean:0)),
+          minStd: minStd};
+}
+
+function rbEncode(outData, msgBytes){
+  const w=outData.width, h=outData.height, data=outData.data;
+  const G=rbPickGrid(w,h,msgBytes.length);
+  if(!G){
+    const cap=rbMaxMsg(w,h);
+    throw new Error(cap
+      ? 'robust mode holds ' + cap + ' bytes for an image this size'
+      : 'image too small for robust mode (needs about ' + (RB_GRIDS[0]*RB_MIN_CELL) + 'px on the short side)');
+  }
+  const bits=rbFrameBits(G), bytes=bits/8, cells=G*G;
+  const frame=new Uint8Array(bytes);
+  frame[0]=msgBytes.length;
+  frame.set(msgBytes,1);
+  const c=crc16(frame.subarray(0,bytes-2));
+  frame[bytes-2]=(c>>8)&255; frame[bytes-1]=c&255;
+
+  // Every usable cell is marked. Coverage is deliberately uniform - varying
+  // which areas carry the mark makes the texture patchy, and a change in
+  // texture density is a louder visual cue than a faint even one.
+  let marked=0;
+  for(let cy=0;cy<G;cy++){
+    for(let cx=0;cx<G;cx++){
+      const x0=Math.floor(cx*w/G), x1=Math.floor((cx+1)*w/G);
+      const y0=Math.floor(cy*h/G), y1=Math.floor((cy+1)*h/G);
+      const W=x1-x0, H=y1-y0;
+      if(W<8||H<8) continue;
+      const st=rbCellStats(data,w,x0,x1,y0,y1);
+      if(st.n<RB_MIN_PX) continue;
+      const bi=rbBitFor(cy*G+cx, cells, bits);
+      const bit=(frame[bi>>3] >> (7-(bi&7))) & 1;
+      const target=(bit?1:-1)*rbAmp(st.std, st.minStd);
+      const add=target-st.c;                           // drive the projection to target
+      for(let y=y0;y<y1;y++){
+        for(let x=x0;x<x1;x++){
+          const p=(y*w+x)*4;
+          if(data[p+3]!==255) continue;
+          const d=add*rbBasis((x-x0+0.5)/W, (y-y0+0.5)/H);
+          data[p]  =Math.max(0,Math.min(255,Math.round(data[p]  +d)));
+          data[p+1]=Math.max(0,Math.min(255,Math.round(data[p+1]+d)));
+          data[p+2]=Math.max(0,Math.min(255,Math.round(data[p+2]+d)));
+        }
+      }
+      marked++;
+    }
+  }
+  return {grid:G, marked:marked, cells:marked};
+}
+
+function rbDecodeGrid(imgData, G){
+  const w=imgData.width, h=imgData.height, data=imgData.data;
+  const bits=rbFrameBits(G), bytes=bits/8, cells=G*G;
+  // soft voting: accumulate each cell's signed difference, clamped so one
+  // damaged cell cannot dominate and weak flat cells count proportionally less
+  const votes=new Float64Array(bits);
+  for(let cy=0;cy<G;cy++){
+    for(let cx=0;cx<G;cx++){
+      const x0=Math.floor(cx*w/G), x1=Math.floor((cx+1)*w/G);
+      const y0=Math.floor(cy*h/G), y1=Math.floor((cy+1)*h/G);
+      if(x1-x0<6||y1-y0<6) continue;
+      const st=rbCellStats(data,w,x0,x1,y0,y1);
+      if(st.n<16) continue;
+      votes[rbBitFor(cy*G+cx, cells, bits)] += Math.max(-3*RB_AMP_MAX, Math.min(3*RB_AMP_MAX, st.c));
+    }
+  }
+  const frame=new Uint8Array(bytes);
+  for(let b=0;b<bits;b++) if(votes[b] > 0) frame[b>>3] |= 1 << (7-(b&7));
+  const c=crc16(frame.subarray(0,bytes-2));
+  if(((c>>8)&255)!==frame[bytes-2] || (c&255)!==frame[bytes-1]) return null;
+  const len=frame[0];
+  if(len > bytes-3) return null;
+  return {msg:frame.slice(1,1+len), grid:G};
+}
+
+function rbDecode(imgData){
+  if(Math.min(imgData.width,imgData.height) < RB_GRIDS[0]) return null;
+  for(const G of RB_GRIDS){
+    const r=rbDecodeGrid(imgData,G);
+    if(r) return r;                 // CRC-16 decides which grid was used
+  }
+  return null;
+}
+
 /* ---------- centered ordering (deterministic, no secret) ----------
    Returns opaque pixel indices ordered nearest-image-centre first, so a message
    fills outward from the middle. Reproducible from dimensions alone, so it needs
@@ -798,7 +1492,7 @@ async function decodeHardened(data, pxMap, totalSlots, pass) {
 }
 
 /* ---------- encode state ---------- */
-const enc = {img:null, data:null, pxMap:null, slots:0, out:null, url:null};
+const enc = {img:null, data:null, pxMap:null, slots:0, out:null, url:null, loadNote:''};
 const $ = function(id){ return document.getElementById(id); };
 
 // status text is set as text, never HTML - error strings can carry filenames and
@@ -845,6 +1539,7 @@ async function encLoad(file){
     let note = '';
     if(enc.pxMap) note = 'This image has transparent pixels. Only fully opaque pixels are used, so capacity is lower than the raw size suggests. ';
     if(/jpe?g/i.test(file.type)) note += 'JPEG input is fine - the output is always PNG.';
+    enc.loadNote = note;
     $('encCapNote').textContent = note;
     setStatus($('encStatus'), '', '');
     updateCap();
@@ -857,20 +1552,34 @@ function updateCap(){
   if(!enc.data) return;
   const mode = $('encMode').value;
   const hardened = mode === 'hardened';
-  const bits = hardened ? 1 : parseInt($('encBits').value, 10);
+  const robust = mode === 'robust';
+  const bits = (hardened || robust) ? 1 : parseInt($('encBits').value, 10);
   const pass = $('encPass').value;
-  const cap = hardened
-    ? hardenedCapacity(enc.slots)
-    : capacityBytes(enc.slots, bits);
+  const cap = robust
+    ? rbMaxMsg(enc.data.width, enc.data.height)
+    : hardened
+      ? hardenedCapacity(enc.slots)
+      : capacityBytes(enc.slots, bits);
   const raw = new TextEncoder().encode($('encMsg').value).length;
-  const used = raw ? (hardened ? raw : raw + (pass ? CRYPTO_OVERHEAD : 0)) : 0;
+  const used = raw ? ((hardened || robust) ? raw : raw + (pass ? CRYPTO_OVERHEAD : 0)) : 0;
   $('encCap').textContent = fmtBytes(cap);
   $('encUsed').textContent = fmtBytes(used);
+  if(robust){
+    const G = raw ? rbPickGrid(enc.data.width, enc.data.height, raw) : rbGridFor(enc.data.width, enc.data.height);
+    const cell = G ? Math.round(Math.min(enc.data.width, enc.data.height) / G) : 0;
+    $('encCapNote').textContent = cap
+      ? 'Capacity scales with image size; this one holds ' + cap + ' bytes. ' +
+        (G ? 'This message uses a ' + G + 'x' + G + ' grid, about ' + cell + 'px per cell. ' : '') +
+        'Shorter messages use a coarser grid and survive rougher handling - a short code tolerates heavy downscaling that a full-length one will not.'
+      : 'This image is too small for robust mode. It needs roughly ' + (RB_GRIDS[0]*RB_MIN_CELL) + 'px on the short side.';
+  } else {
+    $('encCapNote').textContent = enc.loadNote;
+  }
   const pct = cap ? Math.min(100, used / cap * 100) : 0;
   const bar = $('encBar');
   bar.querySelector('i').style.width = pct + '%';
   bar.classList.toggle('over', used > cap);
-  const needPass = mode === 'scatter' || hardened;
+  const needPass = mode === 'scatter' || hardened;   // robust carries no encryption
   $('encRun').disabled = !(raw > 0 && used <= cap && (!needPass || !!pass));
   if(used > cap){
     setStatus($('encStatus'), 'Message is ' + fmtBytes(used - cap) + ' too large. Shorten it, raise bits per channel, or use a bigger image.', 'bad');
@@ -886,10 +1595,15 @@ function updateCap(){
 $('encMode').addEventListener('change', function(){
   const m = $('encMode').value;
   const hardened = m === 'hardened';
-  $('encBits').disabled = hardened;
-  $('encPassLabel').textContent = (m === 'scatter' || hardened) ? 'passphrase (required)' : 'passphrase (optional)';
+  const robust = m === 'robust';
+  $('encBits').disabled = hardened || robust;
+  $('encPass').disabled = robust;
+  $('encPassLabel').textContent = (m === 'scatter' || hardened) ? 'passphrase (required)'
+    : robust ? 'passphrase (not used in robust mode)' : 'passphrase (optional)';
   $('encPassHint').textContent = hardened
     ? 'Required. One PBKDF2 derivation from it yields the AES-256-GCM keys and the payload scatter seed. No passphrase means no hardened message.'
+    : robust
+    ? 'Not available in robust mode - AES-GCM adds 44 bytes of overhead against a payload measured in tens of bytes. Encrypt the text yourself beforehand if you need it.'
     : 'With a passphrase the message is encrypted with AES-GCM before it is hidden, so finding the bits is not enough to read it. Required for scattered placement.';
   if(m === 'scatter' && !$('encPass').value)
     setStatus($('encStatus'), 'Scattered placement needs a passphrase - the positions are derived from it.', 'warnt');
@@ -910,6 +1624,46 @@ $('encRun').addEventListener('click', async function(){
     return;
   }
   $('encRun').disabled = true;
+
+  if(mode === 'robust'){
+    setStatus($('encStatus'), 'embedding (robust) ...', '');
+    await new Promise(r => setTimeout(r, 20));
+    try{
+      const msgBytes = new TextEncoder().encode(text);
+      const outData = new ImageData(new Uint8ClampedArray(enc.data.data), enc.data.width, enc.data.height);
+      const rbInfo = rbEncode(outData, msgBytes);
+      enc.out = outData;
+      let changed = 0;
+      const a = enc.data.data, b = outData.data;
+      for(let i=0;i<a.length;i+=4) if(a[i]!==b[i]||a[i+1]!==b[i+1]||a[i+2]!==b[i+2]) changed++;
+      const totalPx = enc.data.width * enc.data.height;
+      drawInto($('encPrevA'), enc.data, 420);
+      drawInto($('encPrevB'), outData, 420);
+      drawPlane($('encPlaneA'), enc.data, 420);
+      drawPlane($('encPlaneB'), outData, 420);
+      const c = document.createElement('canvas');
+      c.width = outData.width; c.height = outData.height;
+      c.getContext('2d').putImageData(outData, 0, 0);
+      c.toBlob(function(blob){
+        if(!blob){ setStatus($('encStatus'), 'PNG encoding failed - try a smaller image', 'bad'); return; }
+        if(enc.url) URL.revokeObjectURL(enc.url);
+        enc.url = URL.createObjectURL(blob);
+        $('encDl').href = enc.url;
+        const cellPx = Math.round(Math.min(outData.width, outData.height) / rbInfo.grid);
+        $('encDiff').textContent = 'Hidden (robust). ' + msgBytes.length + ' of ' +
+          rbMaxMsg(enc.data.width, enc.data.height) + ' bytes, on a ' + rbInfo.grid + 'x' + rbInfo.grid +
+          ' grid (' + rbInfo.marked + ' cells, about ' + cellPx + 'px each). ' +
+          changed.toLocaleString() + ' of ' + totalPx.toLocaleString() + ' pixels touched (' +
+          (changed/totalPx*100).toFixed(1) + '%). PNG is ' + fmtBytes(blob.size) + '.';
+      }, 'image/png');
+      $('encOut').classList.remove('hide');
+      setStatus($('encStatus'), 'Embedded. This one is meant to survive recompression - try re-saving it as a JPEG and decoding that.', 'ok');
+    }catch(err){
+      setStatus($('encStatus'), err.message, 'bad');
+    }
+    $('encRun').disabled = false;
+    return;
+  }
 
   if(mode === 'hardened'){
     setStatus($('encStatus'), 'deriving keys and embedding ...', '');
@@ -1109,7 +1863,17 @@ $('decRun').addEventListener('click', async function(){
     for(let bits=1; bits<=3 && !hdr; bits++) hdr = tryHeader(centered, true, bits);
   }
   if(!hdr){
-    const noFind = pass ? 'No message found (tried hardened and standard modes). ' : 'No message found. ';
+    // robust mode carries no header - validated by CRC over the recovered frame
+    const rb = rbDecode(dec.data);
+    if(rb){
+      $('decMsg').textContent = new TextDecoder().decode(rb.msg);
+      $('decMeta').textContent = 'Robust: block-mean modulation over a ' + rb.grid + 'x' + rb.grid +
+        ' relative grid, CRC-16 verified, ' + rb.msg.length + ' bytes. Not encrypted.';
+      $('decOut').classList.remove('hide');
+      setStatus($('decStatus'), 'Message recovered.', 'ok');
+      return;
+    }
+    const noFind = pass ? 'No message found (tried hardened, standard and robust modes). ' : 'No message found (tried standard and robust modes). ';
     setStatus($('decStatus'), noFind + 'Either there is nothing hidden here, it was hidden with a different tool, or the file was re-compressed after the message went in.', 'warnt');
     return;
   }
