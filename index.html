@@ -1,229 +1,682 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-design="chamfer" data-mode="dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
-<title>steg-lab -- learn steganography by doing</title>
-
-<!-- Webfonts are off by default so the file works offline and from file://.
-     To turn them on, uncomment the two lines below.
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
--->
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<title>steg-lab</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3QgeD0iMy4yIiB5PSI1LjgiIHdpZHRoPSIyNS42IiBoZWlnaHQ9IjIwLjQiIHJ4PSIyLjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJlYzljNiIgc3Ryb2tlLXdpZHRoPSIyLjIiLz48Y2lyY2xlIGN4PSIxMC40IiBjeT0iMTIuNCIgcj0iMi4xIiBmaWxsPSJub25lIiBzdHJva2U9IiMyZWM5YzYiIHN0cm9rZS13aWR0aD0iMi4yIi8+PHBhdGggZD0iTTQuNCAyMy40IDEyLjIgMTUuNmw0LjYgNC42IDMuNi0zLjQgNi44IDYuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMmVjOWM2IiBzdHJva2Utd2lkdGg9IjIuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+">
 
 <style>
 
+
 /* ============================================================
    steg-lab
-   One structural stylesheet driven by per-theme design tokens.
-   Two themes, same terminal styling, opposite palettes.
+   Hide and reveal messages in images, for teaching.
+
+   One stylesheet, three independent axes:
+
+     data-design  chamfer | console | circuit | contour
+                  shape language, surface hue family, backdrop
+                  texture, ornament. This is the "look".
+
+     data-mode    dark | dusk | sepia | light
+                  the lightness ramp only. Every design supports
+                  every mode.
+
+     --ah / --ac  accent hue and chroma, set on <html> by the
+                  accent picker. Accent lightness comes from the
+                  mode, so a hue can never go invisible against
+                  the surface it sits on.
+
+   That is 16 palettes from eight small blocks, and no component
+   rule anywhere below knows which one is active.
+
+   Geometry is deliberately mode- and design-independent: every
+   design shares the same bar height, panel padding, control
+   padding, type sizes and grid. Designs may only change colour,
+   radius, clip-path, borders and absolutely-positioned ornament,
+   so switching design never reflows the page.
+
+   Sans for chrome and prose, mono for data. No webfonts, no
+   network calls, no build step.
    ============================================================ */
 
 :root {
-    --wrap: 880px;
-    --font: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    --wrap: 1080px;   /* content column */
+    --read: 760px;    /* prose column */
+    --ui:   system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    /* Shared geometry. Do not re-declare these in a design block:
+       they are what keeps a design switch from moving content. */
+    --bar:      52px;   /* top bar height */
+    --pad:      18px;   /* panel padding */
+    --gap:      14px;   /* grid gap */
+    --ctl:      30px;   /* icon button / logo tile box */
+
+    /* Accent defaults, overwritten inline by the picker. */
+    --ah: 178;
+    --ac: 68%;
 }
 
-/* ---------- Tokens: Dark (default) ---------- */
-:root,
-html[data-theme="dark"] {
-    --bg:          #0b0e14;
-    --card:        #161b25;
-    --sunken:      #11161f;
-    --raised:      #1b212d;
-    --line:        #262d3a;
-    --line-soft:   #1e2431;
-    --fg:          #c7ccd6;
-    --fg-dim:      #7b8496;
-    --fg-faint:    #59616f;
-    --accent:      #58a6ff;
-    --accent-soft: rgba(88, 166, 255, 0.14);
-    --accent-ink:  #06111f;
-    --toggle-on:   #3fb950;
-    --toggle-ink:  #06210c;
-    --radius:      10px;
-    --radius-sm:   6px;
-    --shadow:      0 18px 50px -18px rgba(0, 0, 0, 0.75);
-    --bad:         #f87171;
-    --warn:        #d29922;
-    --ok:          #3fb950;
+/* ============================================================
+   Designs: hue family per mode group, shape, ornament switches
+   ============================================================ */
+
+/* Cut corners, instrument grid. The house design. */
+html[data-design="chamfer"] {
+    --hd: 218; --sd: 20%;    /* dark + dusk surfaces */
+    --hw: 36;  --sw: 30%;    /* sepia surfaces */
+    --hl: 216; --sl: 14%;    /* light surfaces */
+    --radius: 0px;
+    --radius-sm: 4px;
+    --notch: 16px;
+    --notch-sm: 8px;
 }
 
-/* ---------- Tokens: Light ---------- */
-html[data-theme="light"] {
-    --bg:          #e9edf2;
-    --card:        #ffffff;
-    --sunken:      #f3f5f8;
-    --raised:      #fbfcfd;
-    --line:        #d3dae3;
-    --line-soft:   #e5eaf0;
-    --fg:          #0e1620;
-    --fg-dim:      #5f6b7a;
-    --fg-faint:    #8b96a5;
-    --accent:      #0f766e;
-    --accent-soft: rgba(15, 118, 110, 0.10);
-    --accent-ink:  #ffffff;
-    --toggle-on:   #0f766e;
-    --toggle-ink:  #ffffff;
-    --radius:      10px;
-    --radius-sm:   6px;
-    --shadow:      0 1px 2px rgba(16, 24, 40, 0.05), 0 14px 36px -16px rgba(16, 24, 40, 0.28);
-    --bad:         #dc2626;
-    --warn:        #b45309;
-    --ok:          #0f766e;
+/* Square, graphite, hairline scan lines. The terminal remnant. */
+html[data-design="console"] {
+    --hd: 205; --sd: 9%;
+    --hw: 42;  --sw: 20%;
+    --hl: 210; --sl: 7%;
+    --radius: 0px;
+    --radius-sm: 0px;
+    --notch: 0px;
+    --notch-sm: 0px;
+}
+
+/* Board colours, via grid, one constant plating. */
+html[data-design="circuit"] {
+    --hd: 152; --sd: 38%;
+    --hw: 40;  --sw: 34%;
+    --hl: 150; --sl: 8%;
+    --radius: 3px;
+    --radius-sm: 2px;
+    --notch: 0px;
+    --notch-sm: 0px;
+}
+
+/* Soft radii, accent wash, no texture. The calm one. */
+html[data-design="contour"] {
+    --hd: 258; --sd: 22%;
+    --hw: 30;  --sw: 26%;
+    --hl: 250; --sl: 13%;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --notch: 0px;
+    --notch-sm: 0px;
+}
+
+/* ============================================================
+   Modes: lightness ramp, accent band, status colours
+
+   --l-*  surface and text lightness stops
+   --al   accent lightness, chosen so any hue clears its surface
+   --ink  text that sits on top of the accent
+   ============================================================ */
+
+html[data-mode="dark"] {
+    color-scheme: dark;
+    --h: var(--hd); --s: var(--sd);
+    --l-bg: 7%;   --l-card: 10.5%; --l-sunken: 8.5%; --l-raised: 15%;
+    --l-line: 23%; --l-soft: 16%;
+    --l-fg: 93%;  --l-dim: 67%;   --l-faint: 54%;
+    --al: 66%; --soft: 0.15;
+    --ink: hsl(var(--ah) 60% 8%);
+    --sh: rgba(0, 0, 0, 0.55);
+    --shadow-lift: 0 20px 50px -20px rgba(0, 0, 0, 0.85);
+    --ok:   hsl(146 58% 55%);
+    --warn: hsl(41 86% 60%);
+    --bad:  hsl(5 85% 66%);
+    --ok-ink: hsl(146 60% 8%);
+    --copper: #d3a24a;
+}
+
+/* "Not as dark": same palette lifted off black, for rooms with
+   some light in them and for long sessions. */
+html[data-mode="dusk"] {
+    color-scheme: dark;
+    --h: var(--hd); --s: var(--sd);
+    --l-bg: 16%;  --l-card: 20%;  --l-sunken: 17.5%; --l-raised: 25%;
+    --l-line: 32%; --l-soft: 25%;
+    --l-fg: 95%;  --l-dim: 74%;   --l-faint: 62%;
+    --al: 68%; --soft: 0.17;
+    --ink: hsl(var(--ah) 60% 10%);
+    --sh: rgba(0, 0, 0, 0.42);
+    --shadow-lift: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+    --ok:   hsl(146 55% 58%);
+    --warn: hsl(41 82% 62%);
+    --bad:  hsl(5 82% 68%);
+    --ok-ink: hsl(146 60% 9%);
+    --copper: #dcae5c;
+}
+
+/* Warm paper. Bright but low glare. */
+html[data-mode="sepia"] {
+    color-scheme: light;
+    --h: var(--hw); --s: var(--sw);
+    --l-bg: 87%;  --l-card: 95%;  --l-sunken: 91%; --l-raised: 98%;
+    --l-line: 72%; --l-soft: 82%;
+    --l-fg: 16%;  --l-dim: 36%;   --l-faint: 45%;
+    --al: 38%; --soft: 0.11;
+    --ink: hsl(var(--ah) 40% 98%);
+    --sh: rgba(70, 52, 18, 0.16);
+    --shadow-lift: 0 20px 50px -22px rgba(70, 52, 18, 0.3);
+    --ok:   hsl(150 52% 30%);
+    --warn: hsl(32 78% 34%);
+    --bad:  hsl(2 68% 44%);
+    --ok-ink: hsl(40 40% 97%);
+    --copper: #96681a;
+}
+
+/* Cool white. The print-adjacent one. */
+html[data-mode="light"] {
+    color-scheme: light;
+    --h: var(--hl); --s: var(--sl);
+    --l-bg: 93%;  --l-card: 100%; --l-sunken: 96.5%; --l-raised: 99%;
+    --l-line: 84%; --l-soft: 90%;
+    --l-fg: 12%;  --l-dim: 37%;   --l-faint: 47%;
+    --al: 39%; --soft: 0.1;
+    --ink: hsl(var(--ah) 35% 99%);
+    --sh: rgba(16, 24, 40, 0.14);
+    --shadow-lift: 0 20px 50px -22px rgba(16, 24, 40, 0.26);
+    --ok:   hsl(150 54% 29%);
+    --warn: hsl(32 80% 33%);
+    --bad:  hsl(2 70% 45%);
+    --ok-ink: hsl(150 30% 99%);
+    --copper: #8a6410;
+}
+
+/* ============================================================
+   The token layer. Everything below this point uses these and
+   nothing else. A literal colour in a component rule is a bug:
+   it will break in at least one of the sixteen combinations.
+   ============================================================ */
+html {
+    --bg:        hsl(var(--h) var(--s) var(--l-bg));
+    --card:      hsl(var(--h) var(--s) var(--l-card));
+    --sunken:    hsl(var(--h) var(--s) var(--l-sunken));
+    --raised:    hsl(var(--h) var(--s) var(--l-raised));
+    --line:      hsl(var(--h) calc(var(--s) * 0.85) var(--l-line));
+    --line-soft: hsl(var(--h) calc(var(--s) * 0.85) var(--l-soft));
+    --fg:        hsl(var(--h) calc(var(--s) * 0.30) var(--l-fg));
+    --fg-dim:    hsl(var(--h) calc(var(--s) * 0.35) var(--l-dim));
+    --fg-faint:  hsl(var(--h) calc(var(--s) * 0.35) var(--l-faint));
+
+    --accent:      hsl(var(--ah) var(--ac) var(--al));
+    --accent-soft: hsl(var(--ah) var(--ac) var(--al) / var(--soft));
+    --accent-ink:  var(--ink);
+
+    --toggle-on:  var(--ok);
+    --toggle-ink: var(--ok-ink);
+
+    --shadow: 0 1px 2px var(--sh);
+}
+/* Contour lifts its surfaces instead of outlining them. */
+html[data-design="contour"] {
+    --shadow: 0 1px 2px var(--sh), 0 18px 38px -26px var(--sh);
 }
 
 /* ============================================================
    Base
    ============================================================ */
 * { box-sizing: border-box; }
+html { scrollbar-gutter: stable; }
 
 body {
     margin: 0;
-    padding: 28px 20px 48px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
     background: var(--bg);
     color: var(--fg);
-    font-family: var(--font);
+    font-family: var(--ui);
     font-size: 13.5px;
-    line-height: 1.55;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
 
+/* Backdrop. One layer, four treatments, all built from tokens and
+   all pinned behind the content, so none of them can push a pixel. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+/* Instrument grid: a worksheet under the readout. */
+html[data-design="chamfer"] body::before {
+    background-image:
+        linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.4;
+}
+/* Scan rules: horizontal hairlines, close enough to read as a screen. */
+html[data-design="console"] body::before {
+    background-image: repeating-linear-gradient(180deg,
+        var(--line-soft) 0 1px, transparent 1px 6px);
+    opacity: 0.32;
+}
+/* Via holes: a plated ring around a hole the colour of the board. */
+html[data-design="circuit"] body::before {
+    background-image:
+        radial-gradient(circle, var(--line) 1.4px, transparent 1.6px),
+        radial-gradient(circle, var(--bg) 0.7px, transparent 0.9px);
+    background-size: 30px 30px, 30px 30px;
+    opacity: 0.55;
+}
+/* A single soft wash in the current accent, and nothing else. */
+html[data-design="contour"] body::before {
+    background-image: radial-gradient(880px 400px at 50% -190px,
+        var(--accent-soft), transparent 72%);
+    opacity: 1;
+}
+.topbar, .page, .footer, .notification { position: relative; z-index: 1; }
+
+h1, h2, h3 { margin: 0; font-weight: 600; }
 ::selection { background: var(--accent); color: var(--accent-ink); }
 ::placeholder { color: var(--fg-faint); opacity: 1; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* The chamfer. A clip-path, so it costs no space and the same box
+   is still the same box in every other design. */
+.chamfer, .chamfer-sm { border-radius: var(--radius); }
+html[data-design="chamfer"] .chamfer {
+    border-radius: 0;
+    clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, 0 100%, 0 var(--notch));
+}
+html[data-design="chamfer"] .chamfer-sm {
+    border-radius: 0;
+    clip-path: polygon(var(--notch-sm) 0, 100% 0, 100% 100%, 0 100%, 0 var(--notch-sm));
+}
+@media print {
+    .chamfer, .chamfer-sm { clip-path: none !important; border-radius: 3px; }
+}
 
 /* ============================================================
-   Window
+   Top bar
    ============================================================ */
-.container {
-    width: 100%;
-    max-width: var(--wrap);
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
+    border-bottom: 1px solid var(--line);
 }
-
-/* ---------- Title bar ---------- */
-.titlebar {
-    position: relative;
+/* Circuit only: the gold contact fingers of a card-edge connector,
+   kept to a hairline so it reads as an edge and not a stripe. */
+html[data-design="circuit"] .topbar::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -2px;
+    height: 2px;
+    background: repeating-linear-gradient(90deg,
+        var(--copper) 0, var(--copper) 5px,
+        transparent 5px, transparent 8px);
+    opacity: 0.7;
+}
+/* Console only: the bar sits on a second hairline, like a rule under
+   a header in a terminal UI. Drawn as a shadow, so it takes no space. */
+html[data-design="console"] .topbar {
+    box-shadow: 0 3px 0 -1px var(--line-soft);
+}
+.topbar-inner {
+    max-width: var(--wrap);
+    margin: 0 auto;
+    padding: 0 20px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 11px 12px 11px 16px;
-    background: var(--sunken);
-    border-bottom: 1px solid var(--line-soft);
+    gap: 16px;
+    min-height: var(--bar);
 }
-.dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
-.dot:nth-child(1) { background: #ff5f56; }
-.dot:nth-child(2) { background: #ffbd2e; }
-.dot:nth-child(3) { background: #27c93f; }
 
-.titlebar-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 12.5px;
-    color: var(--fg-dim);
-    pointer-events: none;
+/* Terminal remnant: the name stays mono. No version here, it lives
+   in the footer where it does not compete with the mark. */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font);
+    font-size: 14px;
     white-space: nowrap;
 }
-.titlebar .spacer { flex: 1; }
+.brand .name { color: var(--fg); font-weight: 500; letter-spacing: 0.2px; }
 
-/* ---------- Theme toggle ---------- */
+/* A lit indicator rather than a decoration: it breathes to say the tab
+   is alive, and its title is where the "runs local" claim actually
+   lives. Keep the claim true or remove the dot. */
+.pulse {
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 5px var(--ok);
+    animation: breathe 2.6s ease-in-out infinite;
+}
+@keyframes breathe {
+    0%, 100% { opacity: 0.3; }
+    50%      { opacity: 1; }
+}
+
+/* Logo slot. One mark, every design: only the frame around it changes,
+   and the box is a fixed 30px square in all four so the bar never
+   shifts. Swap the SVG for the tool's own mark, drawn with
+   currentColor on a 32x32 viewBox so it follows the accent. */
+.logo {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ctl);
+    height: var(--ctl);
+    padding: 5px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    animation: logo-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.logo svg, .logo img { display: block; width: 100%; height: 100%; }
+.logo img { object-fit: contain; }
+html[data-design="chamfer"] .logo {
+    border-radius: 0;
+    clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
+}
+html[data-design="circuit"] .logo { border-color: var(--copper); }
+html[data-design="contour"] .logo { border-radius: 50%; }
+@keyframes logo-in {
+    from { opacity: 0; transform: scale(0.75); }
+    to   { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .logo { animation: none; } }
+
+/* ---------- Tabs ---------- */
+.tabs { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+    position: relative;
+    font: inherit;
+    font-size: 13px;
+    color: var(--fg-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 6px 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, background 0.15s;
+}
+.tab:hover { color: var(--fg); background: var(--sunken); }
+.tab[aria-selected="true"] { color: var(--accent); }
+/* Underline for the two hard-edged designs, drawn on a pseudo element
+   so the selected tab is exactly as tall as the others. */
+.tab::after {
+    content: "";
+    position: absolute;
+    left: 13px; right: 13px; bottom: -1px;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.18s ease;
+}
+.tab[aria-selected="true"]::after { transform: scaleX(1); }
+html[data-design="console"] .tab[aria-selected="true"],
+html[data-design="contour"] .tab[aria-selected="true"] { background: var(--accent-soft); }
+html[data-design="console"] .tab::after,
+html[data-design="contour"] .tab::after { display: none; }
+html[data-design="contour"] .tab { border-radius: 999px; }
+html[data-design="circuit"] .tab[aria-selected="true"]::after { background: var(--copper); }
+
+/* ---------- Menus: design, mode, accent ---------- */
+.bar-tools { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+.menu-wrap { position: relative; flex: 0 0 auto; }
 .icon-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 27px;
-    height: 27px;
+    width: var(--ctl);
+    height: var(--ctl);
     padding: 0;
     color: var(--fg-dim);
     background: transparent;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
-.icon-btn:hover { color: var(--accent); border-color: var(--line); }
-.icon-btn svg {
-    width: 15px; height: 15px;
-    fill: none; stroke: currentColor;
-    stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
-}
-html[data-theme="dark"]  .ic-moon { display: none; }
-html[data-theme="light"] .ic-sun  { display: none; }
+.icon-btn:hover { color: var(--accent); background: var(--sunken); border-color: var(--line); }
+.icon-btn[aria-expanded="true"] { color: var(--accent); background: var(--accent-soft); border-color: var(--line); }
+.icon-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; }
 
-/* ---------- Tab strip ---------- */
-.tabs {
-    display: flex;
-    padding: 0 8px;
-    background: var(--sunken);
-    border-bottom: 1px solid var(--line);
-    overflow-x: auto;
-    scrollbar-width: none;
+.menu {
+    position: absolute;
+    top: 36px;
+    right: 0;
+    z-index: 60;
+    min-width: 208px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lift);
 }
-.tabs::-webkit-scrollbar { display: none; }
-.tab {
+.menu[hidden] { display: none; }
+.menu-title {
+    font-family: var(--font);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    padding: 4px 8px 6px;
+}
+.opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
     font: inherit;
-    font-size: 12.5px;
-    color: var(--fg-dim);
+    font-size: 13px;
+    text-align: left;
+    color: var(--fg);
     background: transparent;
     border: 0;
-    border-bottom: 2px solid transparent;
-    padding: 9px 15px;
+    border-radius: 6px;
+    padding: 7px 9px;
     cursor: pointer;
-    white-space: nowrap;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
-.tab:hover { color: var(--fg); }
-.tab[aria-selected="true"] {
-    color: var(--accent);
-    background: var(--card);
-    border-bottom-color: var(--accent);
+.opt:hover { background: var(--sunken); }
+.opt[aria-checked="true"] { color: var(--accent); }
+.opt .lbl { display: flex; flex-direction: column; line-height: 1.3; }
+.opt .lbl small { color: var(--fg-faint); font-size: 11px; }
+.opt .tick { margin-left: auto; font-family: var(--font); font-size: 12px; opacity: 0; }
+.opt[aria-checked="true"] .tick { opacity: 1; }
+
+/* Design swatch: a 16px sample of that design's actual shape and
+   backdrop, so the menu shows what it is rather than naming it. */
+.dsw {
+    flex: 0 0 auto;
+    width: 16px; height: 16px;
+    background: var(--sunken);
+    border: 1px solid var(--fg-faint);
 }
+.opt[data-set="chamfer"] .dsw { clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px); }
+.opt[data-set="console"] .dsw {
+    background-image: repeating-linear-gradient(180deg, var(--fg-faint) 0 1px, transparent 1px 4px);
+}
+.opt[data-set="circuit"] .dsw {
+    border-radius: 2px;
+    background-image: radial-gradient(circle, var(--fg-faint) 1.2px, transparent 1.4px);
+    background-size: 8px 8px;
+    background-position: 1px 1px;
+}
+.opt[data-set="contour"] .dsw { border-radius: 50%; }
 
-.body { padding: 20px 22px 24px; }
-section[hidden] { display: none; }
+/* Mode swatch: the ramp itself, ink over paper. */
+.msw {
+    flex: 0 0 auto;
+    width: 16px; height: 16px;
+    border: 1px solid var(--fg-faint);
+    border-radius: 2px;
+}
+.opt[data-set="dark"]  .msw { background: linear-gradient(135deg, hsl(215 20% 46%) 50%, hsl(215 20% 7%) 50%); }
+.opt[data-set="dusk"]  .msw { background: linear-gradient(135deg, hsl(215 18% 62%) 50%, hsl(215 18% 20%) 50%); }
+.opt[data-set="sepia"] .msw { background: linear-gradient(135deg, hsl(36 28% 28%) 50%, hsl(36 30% 92%) 50%); }
+.opt[data-set="light"] .msw { background: linear-gradient(135deg, hsl(215 14% 30%) 50%, hsl(215 14% 100%) 50%); }
 
-/* ---------- Prompt line ---------- */
-.prompt { margin-bottom: 6px; font-size: 13px; }
-.prompt .path { color: var(--accent); }
-.prompt .chev { color: var(--fg-faint); }
-.comment { color: var(--fg-faint); font-size: 12.5px; margin-bottom: 20px; }
+/* Accent picker. The swatches are painted by the script using the
+   live formula, so each one previews the hue as the current mode
+   will actually render it. */
+.swatches {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 4px 8px 8px;
+}
+.swatch {
+    height: 26px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+.swatch:hover { transform: translateY(-1px); }
+.swatch[aria-checked="true"] { box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--fg); }
+/* The wheel replaces the browser's colour input. Hue is the angle and
+   chroma is the radius, which is the whole of what the accent takes
+   from a pick: lightness is the mode's job. The rim is drawn by the
+   script at the lightness the active mode will actually render, and
+   the middle fades into the surface underneath, so the control is a
+   preview of the palette rather than a generic spectrum. */
+.wheel-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 8px 6px;
+    border-top: 1px solid var(--line-soft);
+}
+.wheel {
+    position: relative;
+    width: 116px;
+    height: 116px;
+    border-radius: 50%;
+    cursor: crosshair;
+    touch-action: none;
+    box-shadow: 0 0 0 1px var(--line);
+}
+.wheel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, var(--card) 5%, transparent 64%);
+    pointer-events: none;
+}
+.wheel-dot {
+    position: absolute;
+    width: 13px; height: 13px;
+    margin: -6.5px 0 0 -6.5px;
+    border-radius: 50%;
+    border: 2px solid var(--card);
+    box-shadow: 0 0 0 1px var(--fg);
+    pointer-events: none;
+}
+.accent-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    font-size: 12px;
+    color: var(--fg-dim);
+}
+.accent-foot .now { font-family: var(--font); color: var(--fg); }
+/* Kept alongside the wheel for the one case the wheel is bad at:
+   matching a brand colour exactly. */
+.hexin {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--font);
+    color: var(--fg-faint);
+}
+.hexin .field { width: 66px; padding: 4px 6px; font-size: 11.5px; }
 
 /* ============================================================
-   Sections
+   Page
    ============================================================ */
-.section-header {
+.page { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 22px 20px 34px; flex: 1 0 auto; }
+section[hidden] { display: none; }
+
+/* Terminal remnant: a mono status line under the bar. */
+.statusline {
+    font-family: var(--font);
+    font-size: 12px;
+    color: var(--fg-faint);
+    margin-bottom: 18px;
+}
+.statusline b { color: var(--fg-dim); font-weight: 500; }
+.statusline .chev { color: var(--accent); }
+
+.panel {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: var(--pad);
+    margin-bottom: 16px;
+}
+html[data-design="chamfer"] .panel {
+    border-radius: 0;
+    clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, 0 100%, 0 var(--notch));
+}
+/* Console: an accent rule down the binding edge. Absolute, so the
+   18px of padding is still 18px. */
+html[data-design="console"] .panel::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    opacity: 0.55;
+}
+/* Circuit: a fiducial in the corner, the way a board marks its own
+   orientation. Sits in the padding, never in the content. */
+html[data-design="circuit"] .panel::before {
+    content: "";
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 7px; height: 7px;
+    border: 1.5px solid var(--copper);
+    border-radius: 50%;
+    opacity: 0.65;
+}
+@media print { .panel { clip-path: none !important; } .panel::before { display: none; } }
+
+.panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: var(--gap);
+    margin-bottom: var(--gap);
 }
-.section-header span {
+.panel-head h2 { font-size: 14.5px; }
+.panel-head .sub {
+    font-family: var(--font);
     font-size: 11px;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--fg-dim);
+    color: var(--fg-faint);
 }
-.section-header span::before { content: '// '; color: var(--fg-faint); }
-
-.panel {
-    background: var(--sunken);
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius-sm);
-    padding: 16px;
-    margin-bottom: 16px;
-}
+.panel-head .sub::before { content: "["; }
+.panel-head .sub::after  { content: "]"; }
+.prose { max-width: var(--read); color: var(--fg-dim); }
 
 /* ============================================================
    Controls
@@ -232,10 +685,10 @@ section[hidden] { display: none; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 8px 13px;
+    gap: 7px;
+    padding: 8px 14px;
     font: inherit;
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--fg);
     background: var(--raised);
     border: 1px solid var(--line);
@@ -244,30 +697,41 @@ section[hidden] { display: none; }
     transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 .btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-.btn:active { transform: scale(0.985); }
-.btn:disabled { opacity: 0.55; cursor: default; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: default; }
 .btn:disabled:hover { color: var(--fg); border-color: var(--line); background: var(--raised); }
 
-.btn-primary { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
-.btn-primary:hover { color: var(--accent-ink); background: var(--accent); filter: brightness(1.12); }
+.btn-primary {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+.btn-primary:hover { color: var(--accent-ink); background: var(--accent); filter: brightness(1.08); }
+html[data-design="chamfer"] .btn-primary {
+    border-radius: 0;
+    clip-path: polygon(var(--notch-sm) 0, 100% 0, 100% 100%, 0 100%, 0 var(--notch-sm));
+}
+html[data-design="contour"] .btn, html[data-design="contour"] .btn-primary { border-radius: 999px; }
 .btn-danger:hover { color: var(--bad); border-color: var(--bad); background: transparent; }
-.btn-sm { padding: 5px 9px; font-size: 12px; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--fg-dim); }
+.btn-ghost:hover { background: var(--sunken); border-color: var(--line); }
 
-/* ---------- Inputs ---------- */
+/* ---------- Inputs: mono, because they hold data ---------- */
 .field {
     width: 100%;
-    font: inherit;
+    font-family: var(--font);
     font-size: 12.5px;
     color: var(--fg);
-    background: var(--raised);
+    background: var(--sunken);
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
-    padding: 7px 10px;
+    padding: 8px 10px;
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, background 0.15s;
 }
 .field:hover { border-color: var(--fg-faint); }
-.field:focus { border-color: var(--accent); }
+.field:focus { border-color: var(--accent); background: var(--card); }
 textarea.field { line-height: 1.6; resize: vertical; }
 select.field { cursor: pointer; }
 
@@ -275,26 +739,18 @@ label.f {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    font-size: 11px;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
+    font-size: 12px;
     color: var(--fg-dim);
 }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--gap); }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .spacer { flex: 1; }
 
-/* ---------- Toggle rows ---------- */
+/* ---------- Toggles ---------- */
 .toggle-group { display: flex; flex-direction: column; gap: 12px; }
-.toggle-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: 30px;
-}
-.toggle-label { font-size: 12.5px; color: var(--fg); }
+.toggle-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 30px; }
+.toggle-label { font-size: 13px; color: var(--fg); }
 
 .toggle-switch {
     position: relative;
@@ -310,10 +766,8 @@ label.f {
 .toggle-switch::after {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 16px;
-    height: 16px;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
     border-radius: 50%;
     background: var(--fg-faint);
     transition: transform 0.18s, background 0.18s;
@@ -324,19 +778,24 @@ label.f {
 /* ---------- Drop zone ---------- */
 .drop {
     border: 1px dashed var(--line);
-    border-radius: var(--radius-sm);
-    padding: 22px 14px;
+    border-radius: var(--radius);
+    padding: 24px 14px;
     text-align: center;
     color: var(--fg-dim);
-    background: var(--raised);
+    background: var(--sunken);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+html[data-design="chamfer"] .drop {
+    border-radius: 0;
+    clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, 0 100%, 0 var(--notch));
 }
 .drop:hover, .drop.over { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .drop b { display: block; margin-bottom: 2px; color: var(--fg); font-weight: 500; }
 .drop:hover b { color: var(--accent); }
+@media print { .drop { clip-path: none !important; } }
 
-/* ---------- Text ---------- */
+/* ---------- Data text ---------- */
 pre {
     margin: 0;
     padding: 12px;
@@ -344,37 +803,59 @@ pre {
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-word;
+    font-family: var(--font);
     font-size: 12.5px;
     line-height: 1.6;
-    background: var(--raised);
+    background: var(--sunken);
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
 }
-code { font-size: 12px; }
+code { font-family: var(--font); font-size: 12px; }
 mark { background: var(--accent-soft); color: var(--accent); border-radius: 3px; padding: 1px 3px; }
-.log { font-size: 12px; color: var(--fg-dim); }
+.log { font-family: var(--font); font-size: 12px; color: var(--fg-dim); }
 .log .ok { color: var(--ok); } .log .warn { color: var(--warn); }
 .log .bad { color: var(--bad); } .log .a { color: var(--accent); }
-.note { font-size: 11.5px; line-height: 1.65; color: var(--fg-dim); }
+.note { font-size: 12px; line-height: 1.6; color: var(--fg-dim); }
 .note code { color: var(--accent); }
 
+.pill {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    color: var(--fg-dim);
+}
+.pill.ok { color: var(--ok); border-color: var(--ok); }
+.pill.warn { color: var(--warn); border-color: var(--warn); }
+.pill.bad { color: var(--bad); border-color: var(--bad); }
+
 /* ---------- Table ---------- */
-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th {
     text-align: left;
     padding: 8px;
-    font-size: 10px;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--fg-dim);
     border-bottom: 1px solid var(--line);
 }
+/* Console: column heads read as a header row in a log, not a web table. */
+html[data-design="console"] th {
+    font-family: var(--font);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+}
 td { padding: 6px 8px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
+table tr:hover td { background: var(--sunken); }
 td .field { padding: 5px 8px; }
 .empty {
-    padding: 26px;
+    padding: 28px;
     text-align: center;
     color: var(--fg-dim);
     border: 1px dashed var(--line);
@@ -382,35 +863,68 @@ td .field { padding: 5px 8px; }
 }
 
 /* ============================================================
+   Footer: where the version lives
+   ============================================================ */
+.footer {
+    width: 100%;
+    max-width: var(--wrap);
+    margin: 0 auto;
+    padding: 12px 20px 34px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--font);
+    font-size: 11.5px;
+    color: var(--fg-faint);
+    border-top: 1px solid var(--line-soft);
+}
+.footer .sep { opacity: 0.5; }
+.footer .ver { color: var(--fg-dim); }
+.footer .right { margin-left: auto; }
+
+/* ============================================================
    Notification
    ============================================================ */
 .notification {
     position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translate(-50%, 20px);
+    left: 20px;
+    bottom: 20px;
     z-index: 300;
-    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    font-family: var(--font);
     font-size: 12.5px;
-    color: var(--accent-ink);
-    background: var(--accent);
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--accent);
     border-radius: var(--radius-sm);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-lift);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.22s, transform 0.22s;
+    transform: translateX(-6px);
+    transition: opacity 0.2s, transform 0.2s;
 }
-.notification.show { opacity: 1; transform: translate(-50%, 0); }
-.notification.error { color: #fff; background: var(--bad); }
+.notification::before { content: ">"; color: var(--accent); }
+.notification.show { opacity: 1; transform: translateX(0); }
+.notification.error { border-left-color: var(--bad); }
+.notification.error::before { content: "!"; color: var(--bad); }
 
 /* ============================================================
    Responsive
    ============================================================ */
-@media (max-width: 640px) {
-    body { padding: 14px 10px 32px; }
-    .body { padding: 16px; }
-    .titlebar-title { display: none; }
+@media (max-width: 760px) {
+    .topbar-inner { flex-wrap: wrap; gap: 10px; padding: 8px 14px; }
+    .tabs { order: 3; width: 100%; margin-left: 0; }
+    .bar-tools { margin-left: auto; }
+    .page { padding: 16px 14px 28px; }
+    .footer { padding: 12px 14px 28px; }
+    .panel { padding: 14px; }
     .grid { grid-template-columns: 1fr; }
+    .menu { min-width: 190px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -422,24 +936,52 @@ td .field { padding: 5px 8px; }
 }
 
 /* ============================================================
-   Print: one light palette for both themes
+   Print: one light palette for every design and mode
    ============================================================ */
 @media print {
-    :root, html[data-theme="dark"], html[data-theme="light"] {
+    html, html[data-mode="dark"], html[data-mode="dusk"],
+    html[data-mode="sepia"], html[data-mode="light"] {
         color-scheme: light;
         --bg: #ffffff; --card: #ffffff; --sunken: #fafafa; --raised: #ffffff;
         --line: #999999; --line-soft: #cccccc;
         --fg: #111111; --fg-dim: #555555; --fg-faint: #777777;
-        --accent: #0b4f8a; --accent-soft: transparent; --accent-ink: #ffffff;
-        --shadow: none;
+        --accent: #333333; --accent-soft: transparent; --accent-ink: #ffffff;
+        --copper: #555555;
+        --shadow: none; --shadow-lift: none;
     }
-    body { padding: 0; display: block; }
-    .container { max-width: none; border: none; box-shadow: none; }
-    .titlebar, .tabs, .drop, .notification, .btn, .noprint { display: none !important; }
-    .body { padding: 0; }
+    body::before { display: none !important; }
+    body { font-size: 11pt; }
+    .tabs, .bar-tools, .drop, .notification, .btn, .noprint { display: none !important; }
+    /* The bar survives as a masthead so the logo and name land on the page. */
+    .topbar { position: static; background: none; border-bottom: 1px solid #999; box-shadow: none; }
+    .topbar::after { display: none !important; }
+    .topbar-inner { max-width: none; padding: 0 0 8px; min-height: 0; }
+    .logo { color: #111; background: none; }
+    .page { max-width: none; padding: 0; }
+    .panel { border: none; padding: 0; margin-bottom: 18px; break-inside: avoid; page-break-inside: avoid; }
+    .footer { max-width: none; padding: 10px 0 0; }
     section[hidden] { display: block !important; }
-    .panel { break-inside: avoid; page-break-inside: avoid; }
-    a[href]::after { content: " (" attr(href) ")"; font-size: 10px; color: #555; }
+    a[href]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; }
+}
+
+/* ============================================================
+   Legacy shell pieces still used by this tool's markup
+   ============================================================ */
+.prompt {
+    font-family: var(--font);
+    font-size: 12px;
+    color: var(--fg-faint);
+    margin-bottom: 2px;
+}
+.prompt .path { color: var(--fg-dim); }
+.prompt .chev { color: var(--accent); }
+
+.comment {
+    font-family: var(--font);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--fg-dim);
+    margin-bottom: 18px;
 }
 
 
@@ -473,10 +1015,10 @@ textarea { resize: vertical; line-height: 1.6; min-height: 120px; }
     text-transform: uppercase;
     color: var(--fg-dim);
 }
-.lbl span { color: var(--fg-faint); }
-.field { margin-bottom: 12px; width: auto; background: none; border: 0; padding: 0; }
-.field > .lbl { margin-bottom: 6px; }
-.field select { width: 100%; }
+.lbl span { color: var(--fg-dim); }
+.fieldgroup { margin-bottom: 12px; }
+.fieldgroup > .lbl { margin-bottom: 6px; }
+.fieldgroup select { width: 100%; }
 .hint { margin-top: 8px; font-size: 11.5px; line-height: 1.65; color: var(--fg-dim); }
 .ok { color: var(--ok); } .warnt { color: var(--warn); } .bad { color: var(--bad); }
 
@@ -499,6 +1041,8 @@ textarea { resize: vertical; line-height: 1.6; min-height: 120px; }
 }
 .act:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 .act:active { transform: scale(0.985); }
+.act.ghost { background: transparent; border-color: transparent; color: var(--fg-dim); }
+.act.ghost:hover { background: var(--sunken); border-color: var(--line); color: var(--accent); }
 .act.go { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
 .act.go:hover { color: var(--accent-ink); background: var(--accent); filter: brightness(1.12); }
 button.act:disabled { opacity: 0.55; cursor: default; }
@@ -625,43 +1169,139 @@ table.bits th { text-transform: none; letter-spacing: 0; font-weight: 400; font-
 }
 .lbtag.l { left: 8px; } .lbtag.r { right: 8px; }
 
-footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: center; }
 </style>
 </head>
 <body>
 
-<div class="container">
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <span class="logo" aria-hidden="true">
+                <svg viewBox="0 0 32 32">
+                    <rect x="3.2" y="5.8" width="25.6" height="20.4" rx="2.8" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                    <circle cx="10.4" cy="12.4" r="2.1" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                    <path d="M4.4 23.4 12.2 15.6l4.6 4.6 3.6-3.4 6.8 6.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span class="name">steg-lab</span>
+            <span class="pulse" title="Runs entirely in this tab. Nothing is uploaded."></span>
+        </div>
 
-    <div class="titlebar">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="titlebar-title">steg-lab.sh</div>
-        <div class="spacer"></div>
-        <button class="icon-btn" id="themeBtn" type="button" aria-pressed="false" title="Switch theme">
-            <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="4.2"></circle>
-                <path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path>
-            </svg>
-            <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z"></path>
-            </svg>
-        </button>
+        <nav class="tabs" role="tablist">
+            <button class="tab" id="tab-encode" aria-controls="view-encode" role="tab" aria-selected="true" data-view="encode">1 &middot; hide</button>
+            <button class="tab" id="tab-decode" aria-controls="view-decode" role="tab" aria-selected="false" data-view="decode">2 &middot; reveal</button>
+            <button class="tab" id="tab-learn" aria-controls="view-learn"  role="tab" aria-selected="false" data-view="learn">3 &middot; how it works</button>
+        </nav>
+
+        <div class="bar-tools">
+
+            <!-- Design -->
+            <div class="menu-wrap">
+                <button class="icon-btn" id="designBtn" type="button" aria-haspopup="true" aria-expanded="false"
+                        aria-label="Design" title="Design">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 9V4h5"></path><path d="M20 15v5h-5"></path>
+                        <rect x="4" y="9" width="16" height="11"></rect>
+                    </svg>
+                </button>
+                <div class="menu" id="designMenu" role="menu" hidden>
+                    <div class="menu-title">Design</div>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="chamfer">
+                        <span class="dsw" aria-hidden="true"></span>
+                        <span class="lbl">Chamfer<small>cut corners, instrument grid</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="console">
+                        <span class="dsw" aria-hidden="true"></span>
+                        <span class="lbl">Console<small>square, graphite, scan rules</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="circuit">
+                        <span class="dsw" aria-hidden="true"></span>
+                        <span class="lbl">Circuit<small>board colours, via grid, copper</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="contour">
+                        <span class="dsw" aria-hidden="true"></span>
+                        <span class="lbl">Contour<small>soft radii, accent wash</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mode -->
+            <div class="menu-wrap">
+                <button class="icon-btn" id="modeBtn" type="button" aria-haspopup="true" aria-expanded="false"
+                        aria-label="Mode" title="Mode">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"></path>
+                    </svg>
+                </button>
+                <div class="menu" id="modeMenu" role="menu" hidden>
+                    <div class="menu-title">Mode</div>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="dark">
+                        <span class="msw" aria-hidden="true"></span>
+                        <span class="lbl">Dark<small>default, lights off</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="dusk">
+                        <span class="msw" aria-hidden="true"></span>
+                        <span class="lbl">Dusk<small>dark, lifted off black</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="sepia">
+                        <span class="msw" aria-hidden="true"></span>
+                        <span class="lbl">Sepia<small>warm paper, low glare</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                    <button class="opt" role="menuitemradio" aria-checked="false" data-set="light">
+                        <span class="msw" aria-hidden="true"></span>
+                        <span class="lbl">Light<small>cool white</small></span>
+                        <span class="tick" aria-hidden="true">&check;</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Accent -->
+            <div class="menu-wrap">
+                <button class="icon-btn" id="accentBtn" type="button" aria-haspopup="true" aria-expanded="false"
+                        aria-label="Accent colour" title="Accent colour">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                </button>
+                <div class="menu" id="accentMenu" role="menu" hidden>
+                    <div class="menu-title">Accent</div>
+                    <div class="swatches" id="swatches"></div>
+                    <div class="wheel-wrap">
+                        <div class="wheel" id="wheel" tabindex="0" role="slider"
+                             aria-label="Accent colour wheel. Left and right change hue, up and down change intensity."
+                             aria-valuemin="0" aria-valuemax="359" aria-valuenow="178" aria-valuetext="Teal">
+                            <span class="wheel-dot" id="wheelDot" aria-hidden="true"></span>
+                        </div>
+                        <div class="accent-foot">
+                            <span>Accent: <span class="now" id="accentNow">Teal</span></span>
+                            <label class="hexin" title="Match a brand colour exactly. The lightness is still set per mode.">#<input
+                                type="text" class="fieldgroup" id="accentHex" maxlength="7" placeholder="2ec4b6"
+                                spellcheck="false" autocomplete="off" aria-label="Accent colour as hex"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
+</header>
 
-    <div class="tabs" role="tablist">
-        <button class="tab" id="tab-encode" role="tab" aria-selected="true" data-view="encode">1 &middot; hide</button>
-        <button class="tab" id="tab-decode" role="tab" aria-selected="false" data-view="decode">2 &middot; reveal</button>
-        <button class="tab" id="tab-learn"  role="tab" aria-selected="false" data-view="learn">3 &middot; how it works</button>
-    </div>
-
-    <div class="body">
+<main class="page">
 
         <div class="prompt"><span class="path">~/steg-lab</span> <span class="chev">&gt;</span> hide messages inside images</div>
         <div class="comment"># everything runs in this tab, the image never leaves your device &mdash; save the result as PNG, re-saving as JPEG destroys the message</div>
 
       <!-- ============ ENCODE ============ -->
-      <section id="view-encode">
+      <section id="view-encode" role="tabpanel" aria-labelledby="tab-encode">
         <div class="panel">
           <div class="drop" id="encDrop" tabindex="0" role="button">
             <b>Drop a .png / .jpg / .webp image</b>
@@ -687,7 +1327,7 @@ footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: 
           <textarea id="encMsg" placeholder="type the secret here ..."></textarea>
 
           <div class="row" style="margin-top:12px">
-            <div class="field" style="flex:1 1 220px;min-width:0;margin:0">
+            <div class="fieldgroup" style="flex:1 1 220px;min-width:0;margin:0">
               <p class="lbl">bits per channel</p>
               <select id="encBits">
                 <option value="1" selected>1 - invisible</option>
@@ -695,7 +1335,7 @@ footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: 
                 <option value="3">3 - visible noise</option>
               </select>
             </div>
-            <div class="field" style="flex:1 1 220px;min-width:0;margin:0">
+            <div class="fieldgroup" style="flex:1 1 220px;min-width:0;margin:0">
               <p class="lbl">placement</p>
               <select id="encMode">
                 <option value="seq" selected>sequential (top-left onward)</option>
@@ -707,7 +1347,7 @@ footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: 
             </div>
           </div>
 
-          <div class="field" style="margin-top:12px">
+          <div class="fieldgroup" style="margin-top:12px">
             <p class="lbl" id="encPassLabel">passphrase (optional)</p>
             <input type="password" id="encPass" placeholder="leave blank for none" autocomplete="off">
             <div class="hint" id="encPassHint">With a passphrase the message is encrypted with AES-GCM before it is hidden, so finding the bits is not enough to read it. Required for scattered placement.</div>
@@ -738,14 +1378,14 @@ footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: 
       </section>
 
       <!-- ============ DECODE ============ -->
-      <section id="view-decode" class="hide">
+      <section id="view-decode" role="tabpanel" aria-labelledby="tab-decode" class="hide">
         <div class="panel">
           <div class="drop" id="decDrop" tabindex="0" role="button">
             <b>Drop the image to check</b>
             or click to choose
           </div>
           <input type="file" id="decFile" accept="image/*" class="hide">
-          <div class="field" style="margin-top:14px">
+          <div class="fieldgroup" style="margin-top:14px">
             <p class="lbl">passphrase (if one was used)</p>
             <input type="password" id="decPass" placeholder="leave blank if none" autocomplete="off">
           </div>
@@ -772,7 +1412,7 @@ footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: 
       </section>
 
       <!-- ============ LEARN ============ -->
-      <section id="view-learn" class="hide">
+      <section id="view-learn" role="tabpanel" aria-labelledby="tab-learn" class="hide">
         <div class="panel learn">
           <h3>The idea</h3>
           <p>Cryptography hides what a message says. Steganography hides that a message exists at all. A stego image looks identical to the original to anyone who receives it - only someone who knows to look, and knows how, can find anything.</p>
@@ -834,8 +1474,7 @@ footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: 
         </div>
       </section>
 
-    </div>
-  </div>
+</main>
 
   <div class="lb hide" id="lb" role="dialog" aria-modal="true" aria-label="image viewer">
     <div class="lbbar">
@@ -862,25 +1501,344 @@ footer { margin-top: 16px; font-size: 11px; color: var(--fg-faint); text-align: 
     </div>
   </div>
 
-  <footer>steg-lab &middot; runs entirely in your browser &middot; teaching tool, not an operational one</footer>
 
 <script>
 "use strict";
 
-/* ---------- theme ---------- */
-const themeBtn = document.getElementById('themeBtn');
-function applyTheme(t){
-  if(t !== 'dark' && t !== 'light') t = 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  themeBtn.setAttribute('aria-pressed', String(t === 'light'));
-  themeBtn.title = t === 'dark' ? 'Switch to light' : 'Switch to dark';
-  try{ localStorage.setItem('steglab-theme', t); }catch(e){}
-}
-themeBtn.addEventListener('click', function(){
-  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-});
-applyTheme((function(){ try{ return localStorage.getItem('steglab-theme') || 'dark'; }catch(e){ return 'dark'; } })());
+/* ---------- appearance: design x mode x accent ---------- */
+(function () {
+"use strict";
 
+/* Private helpers: these tools disagree about $, el and notify, so the
+   appearance block brings its own and leaks nothing. */
+const Q  = s => document.querySelector(s);
+const QA = s => Array.from(document.querySelectorAll(s));
+function EL(tag, cls) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    return n;
+}
+const KEY = "steg-lab:";
+const ST = {
+    get(k)    { try { return localStorage.getItem(KEY + k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(KEY + k, v); return true; } catch (e) { return false; } }
+};
+let sayT;
+function SAY(m) {
+    /* Prefer the host tool's notify if it has one, then the shared
+       .notification element, then the console. */
+    try { if (typeof notify === "function") { notify(m); return; } } catch (e) {}
+    const n = Q("#notification");
+    if (n) {
+        n.textContent = m;
+        n.classList.add("show");
+        clearTimeout(sayT);
+        sayT = setTimeout(() => n.classList.remove("show"), 2600);
+        return;
+    }
+    try { console.info(m); } catch (e) {}
+}
+
+    /* ============================================================
+       Appearance: design x mode x accent
+
+       Each axis is one data attribute or one pair of custom properties
+       on <html>, and each is stored separately, so a design change never
+       resets the mode and neither touches the accent.
+       ============================================================ */
+    const root = document.documentElement;
+
+    const DESIGNS = ["chamfer", "console", "circuit", "contour"];
+    const MODES   = ["dark", "dusk", "sepia", "light"];
+
+    /* Hue plus chroma. Kept clear of the green, amber and red that --ok,
+       --warn and --bad occupy, so the accent can never be read as state. */
+    const ACCENTS = [
+        { id: "teal",   name: "Teal",   h: 178, c: 68 },
+        { id: "cyan",   name: "Cyan",   h: 196, c: 72 },
+        { id: "azure",  name: "Azure",  h: 214, c: 76 },
+        { id: "indigo", name: "Indigo", h: 248, c: 70 },
+        { id: "violet", name: "Violet", h: 276, c: 64 },
+        { id: "orchid", name: "Orchid", h: 302, c: 58 },
+        { id: "rose",   name: "Rose",   h: 340, c: 66 },
+        { id: "slate",  name: "Slate",  h: 210, c: 18 }
+    ];
+
+    let accent = { h: 178, c: 68, name: "Teal" };
+
+    /* ---------- keeping an arbitrary hue readable ----------
+       HSL lightness is not perceptual: hsl(178 68% 40%) and
+       hsl(248 68% 40%) are nowhere near the same brightness, so a fixed
+       per-mode lightness leaves a teal accent washed out on white while
+       an indigo one is fine. The mode still sets the lightness it wants,
+       but it is treated as a starting point: the accent is then walked
+       away from the surface until it clears a real contrast ratio,
+       measured against the surfaces it actually sits on. That is what
+       makes any colour from the picker safe, including a near-white or
+       near-black one, and why no accented label can go invisible. */
+    const TARGET = 4.6;
+
+    const srgb = u => (u <= 0.03928 ? u / 12.92 : Math.pow((u + 0.055) / 1.055, 2.4));
+    const lum = c => 0.2126 * srgb(c[0]) + 0.7152 * srgb(c[1]) + 0.0722 * srgb(c[2]);
+    function ratio(a, b) {
+        const x = lum(a), y = lum(b);
+        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    }
+    function hslRgb(h, s, l) {
+        s /= 100; l /= 100;
+        const k = n => (n + h / 30) % 12;
+        const a = s * Math.min(l, 1 - l);
+        const f = n => l - a * Math.max(-1, Math.min(Math.min(k(n) - 3, 9 - k(n)), 1));
+        return [f(0), f(8), f(4)];
+    }
+    /* Read the resolved colour off a real element rather than parsing the
+       token: the browser has already substituted every variable. */
+    function surfaceOf(node) {
+        const bg = getComputedStyle(node).backgroundColor || "";
+        /* A fully transparent background is not a surface: reading the
+           "rgba(0, 0, 0, 0)" that browsers report would measure against black. */
+        const al = /rgba?\([^)]*,\s*([\d.]+)\s*\)/.exec(bg);
+        if (al && parseFloat(al[1]) === 0) return null;
+        const m = /(\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)/.exec(bg);
+        return m ? [m[1] / 255, m[2] / 255, m[3] / 255] : null;
+    }
+    function surfaces() {
+        const out = [];
+        const p = Q(".panel"), b = document.body;
+        [p, b].forEach(n => { const c = n && surfaceOf(n); if (c) out.push(c); });
+        return out.length ? out : [[0, 0, 0]];
+    }
+    const worst = (h, c, l, surf) => Math.min.apply(null, surf.map(s => ratio(hslRgb(h, c, l), s)));
+
+    /* The mode's --al, used as the preference to start from. */
+    function baseL() {
+        const v = parseFloat(getComputedStyle(root).getPropertyValue("--al"));
+        return isFinite(v) ? v : 66;
+    }
+    function tuneL(h, c, surf) {
+        const base = baseL();
+        if (worst(h, c, base, surf) >= TARGET) return base;
+        const dir = lum(surf[0]) > 0.35 ? -1 : 1;   /* away from the surface */
+        for (let l = base; l >= 6 && l <= 96; l += dir * 1.5) {
+            if (worst(h, c, l, surf) >= TARGET) return Math.round(l * 10) / 10;
+        }
+        return dir < 0 ? 14 : 94;
+    }
+    const accentCss = (h, c, l) => "hsl(" + h + " " + c + "% " + l + "%)";
+
+    function applyAccent(a, save) {
+        accent = { h: a.h, c: a.c, name: a.name || ("H" + Math.round(a.h)) };
+        root.style.setProperty("--ah", String(accent.h));
+        root.style.setProperty("--ac", accent.c + "%");
+        Q("#accentNow").textContent = accent.name;
+        tuneAccent();
+        if (save && !ST.set("accent", JSON.stringify(accent))) sessionOnly();
+    }
+
+    /* Sets the accent lightness, and the ink that goes on top of it, from
+       measurement rather than assumption. Called on accent change and on
+       every mode change, since the surface underneath has just moved. */
+    function tuneAccent() {
+        const surf = surfaces();
+        /* --al is cleared first so baseL() reads the mode's value, not the
+           one tuned for the previous mode. */
+        root.style.removeProperty("--al");
+        const l = tuneL(accent.h, accent.c, surf);
+        root.style.setProperty("--al", l + "%");
+
+        const acc = hslRgb(accent.h, accent.c, l);
+        const pale = hslRgb(accent.h, 30, 98), deep = hslRgb(accent.h, 55, 9);
+        root.style.setProperty("--ink",
+            ratio(pale, acc) >= ratio(deep, acc) ? accentCss(accent.h, 30, 98) : accentCss(accent.h, 55, 9));
+
+        paintSwatches(surf);
+        paintWheel(surf);
+    }
+
+    /* The rim is 24 stops of the same tuned colour the page would use, so
+       the wheel shifts with the mode instead of lying about it. Hue 0 sits
+       at three o'clock and runs clockwise, which is what the pointer maths
+       below assumes. */
+    const WHEEL_C = 80;
+    function paintWheel(surf) {
+        const s0 = surf || surfaces();
+        const w = Q("#wheel");
+        const tuned = root.style.getPropertyValue("--al");
+        root.style.removeProperty("--al");
+        const stops = [];
+        for (let h = 0; h <= 360; h += 15) {
+            stops.push(accentCss(h % 360, WHEEL_C, tuneL(h % 360, WHEEL_C, s0)) + " " + h + "deg");
+        }
+        if (tuned) root.style.setProperty("--al", tuned);
+        w.style.background = "conic-gradient(from 90deg, " + stops.join(", ") + ")";
+
+        const r = (w.clientWidth || 116) / 2;   /* menu is display:none on the first paint */
+        const rad = accent.h * Math.PI / 180;
+        const d = Math.min(1, Math.max(0, (accent.c - C_MIN) / (C_MAX - C_MIN))) * (r - 7);
+        const dot = Q("#wheelDot");
+        dot.style.left = (r + Math.cos(rad) * d) + "px";
+        dot.style.top  = (r + Math.sin(rad) * d) + "px";
+        dot.style.background = "var(--accent)";
+        w.setAttribute("aria-valuenow", String(Math.round(accent.h)));
+        w.setAttribute("aria-valuetext", accent.name);
+    }
+
+    function paintSwatches(surf) {
+        const s0 = surf || surfaces();
+        const tuned = root.style.getPropertyValue("--al");
+        root.style.removeProperty("--al");
+        QA(".swatch").forEach(sw => {
+            const h = Number(sw.dataset.h), c = Number(sw.dataset.c);
+            sw.style.background = accentCss(h, c, tuneL(h, c, s0));
+            sw.setAttribute("aria-checked", String(h === accent.h && c === accent.c));
+        });
+        if (tuned) root.style.setProperty("--al", tuned);
+    }
+
+    /* The chroma range the picker works in. The floor keeps a grey pick
+       reading as a deliberate accent rather than as broken chrome. */
+    const C_MIN = 12, C_MAX = 92;
+
+    /* hex -> hue and chroma. Lightness is dropped on purpose: the mode
+       supplies it, which is what stops a near-black custom pick from
+       turning every accented label invisible. */
+    function hexToHc(hex) {
+        const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+        if (!m) return null;
+        const n = parseInt(m[1], 16);
+        const r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+        let h = 0;
+        if (d) {
+            if (max === r)      h = ((g - b) / d) % 6;
+            else if (max === g) h = (b - r) / d + 2;
+            else                h = (r - g) / d + 4;
+            h *= 60;
+            if (h < 0) h += 360;
+        }
+        const li = (max + min) / 2;
+        const s = d ? d / (1 - Math.abs(2 * li - 1)) : 0;
+        /* Floor the chroma so a grey pick still reads as a deliberate accent. */
+        return { h: Math.round(h), c: Math.max(C_MIN, Math.min(C_MAX, Math.round(s * 100))) };
+    }
+
+    function applyDesign(d, save) {
+        const v = DESIGNS.includes(d) ? d : DESIGNS[0];
+        root.dataset.design = v;
+        QA("#designMenu .opt").forEach(o => o.setAttribute("aria-checked", String(o.dataset.set === v)));
+        if (save && !ST.set("design", v)) sessionOnly();
+    }
+
+    function applyMode(m, save) {
+        const v = MODES.includes(m) ? m : MODES[0];
+        root.dataset.mode = v;
+        QA("#modeMenu .opt").forEach(o => o.setAttribute("aria-checked", String(o.dataset.set === v)));
+        tuneAccent();      /* the accent is re-lit for the new surface */
+        if (save && !ST.set("mode", v)) sessionOnly();
+    }
+
+    let warned = false;
+    function sessionOnly() {
+        if (warned) return;
+        warned = true;
+        SAY("Appearance changed for this session only, saving it needs the page served over http");
+    }
+
+    /* ---------- menus ---------- */
+    const MENUS = [["#designBtn", "#designMenu"], ["#modeBtn", "#modeMenu"], ["#accentBtn", "#accentMenu"]];
+
+    function closeMenus(except) {
+        MENUS.forEach(([b, m]) => {
+            if (m === except) return;
+            Q(m).hidden = true;
+            Q(b).setAttribute("aria-expanded", "false");
+        });
+    }
+    MENUS.forEach(([b, m]) => {
+        Q(b).addEventListener("click", e => {
+            e.stopPropagation();
+            const open = Q(m).hidden;
+            closeMenus(open ? m : null);
+            Q(m).hidden = !open;
+            Q(b).setAttribute("aria-expanded", String(open));
+            if (open && m === "#accentMenu") paintWheel();
+        });
+    });
+    document.addEventListener("click", e => {
+        if (!MENUS.some(([b, m]) => Q(m).contains(e.target) || Q(b).contains(e.target))) closeMenus();
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenus(); });
+
+    QA("#designMenu .opt").forEach(o => o.addEventListener("click", () => {
+        applyDesign(o.dataset.set, true);
+        closeMenus();
+    }));
+    QA("#modeMenu .opt").forEach(o => o.addEventListener("click", () => {
+        applyMode(o.dataset.set, true);
+        closeMenus();
+    }));
+
+    /* Swatches are built rather than written out: one source of truth for
+       the hues, and each button gets a real label for screen readers. */
+    ACCENTS.forEach(a => {
+        const b = EL("button", "swatch");
+        b.type = "button";
+        b.setAttribute("role", "menuitemradio");
+        b.setAttribute("aria-checked", "false");
+        b.setAttribute("aria-label", a.name);
+        b.title = a.name;
+        b.dataset.h = a.h;
+        b.dataset.c = a.c;
+        b.addEventListener("click", () => applyAccent(a, true));
+        Q("#swatches").appendChild(b);
+    });
+    /* Wheel: angle is hue, distance from the middle is chroma. Pointer
+       capture means a drag that leaves the circle still tracks, and the
+       same handler covers mouse, pen and touch. */
+    const wheel = Q("#wheel");
+    function pickFrom(e) {
+        const b = wheel.getBoundingClientRect();
+        const r = b.width / 2;
+        const x = e.clientX - b.left - r, y = e.clientY - b.top - r;
+        let h = Math.atan2(y, x) * 180 / Math.PI;
+        if (h < 0) h += 360;
+        const c = C_MIN + Math.min(1, Math.hypot(x, y) / (r - 7)) * (C_MAX - C_MIN);
+        applyAccent({ h: Math.round(h), c: Math.round(c), name: hcName(h, c) }, true);
+    }
+    const hcName = (h, c) => "H" + Math.round(h) + " C" + Math.round(c);
+
+    wheel.addEventListener("pointerdown", e => {
+        e.preventDefault();
+        wheel.setPointerCapture(e.pointerId);
+        pickFrom(e);
+    });
+    wheel.addEventListener("pointermove", e => {
+        if (wheel.hasPointerCapture(e.pointerId)) pickFrom(e);
+    });
+    wheel.addEventListener("keydown", e => {
+        const step = { ArrowLeft: [-4, 0], ArrowRight: [4, 0], ArrowUp: [0, 5], ArrowDown: [0, -5] }[e.key];
+        if (!step) return;
+        e.preventDefault();
+        const h = (accent.h + step[0] + 360) % 360;
+        const c = Math.max(C_MIN, Math.min(C_MAX, accent.c + step[1]));
+        applyAccent({ h: h, c: c, name: hcName(h, c) }, true);
+    });
+
+    /* Hex entry, for matching something exact. */
+    Q("#accentHex").addEventListener("input", e => {
+        const hc = hexToHc(e.target.value);
+        if (hc) applyAccent({ h: hc.h, c: hc.c, name: "#" + e.target.value.trim().replace(/^#/, "").toUpperCase() }, true);
+    });
+
+    /* ---------- restore appearance ---------- */
+    applyDesign(ST.get("design") || DESIGNS[0], false);
+    applyMode(ST.get("mode") || MODES[0], false);
+    (() => {
+        let a = null;
+        try { a = JSON.parse(ST.get("accent")); } catch (e) {}
+        applyAccent(a && isFinite(a.h) ? a : ACCENTS[0], false);
+    })();
+})();
 /* ---------- tabs ---------- */
 const views = {encode:document.getElementById('view-encode'),decode:document.getElementById('view-decode'),learn:document.getElementById('view-learn')};
 document.querySelectorAll('.tab').forEach(function(btn){
@@ -2077,5 +3035,18 @@ function renderDemo(){
 $('demoChar').addEventListener('input', renderDemo);
 renderDemo();
 </script>
+<div class="notification" id="notification" role="status" aria-live="polite"></div>
+
+
+<footer class="footer">
+    <span>steg-lab</span>
+    <span class="ver">v1.0.0</span>
+    <span class="sep">&middot;</span>
+    <span>MIT</span>
+    <span class="sep">&middot;</span>
+    <span>github.com/shanemc92</span>
+    <span class="right">no network calls, no analytics</span>
+</footer>
+
 </body>
 </html>
