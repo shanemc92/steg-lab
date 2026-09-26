@@ -66,7 +66,7 @@
    Designs: hue family per mode group, shape, ornament switches
    ============================================================ */
 
-/* Navy editor chrome, one constant blue rule. The house design. */
+/* Navy editor chrome, accent rules. The house design. */
 html[data-design="cobalt"] {
     --hd: 222; --sd: 30%;
     --hw: 38;  --sw: 28%;
@@ -132,7 +132,6 @@ html[data-mode="dark"] {
     --warn: hsl(41 86% 60%);
     --bad:  hsl(5 85% 66%);
     --ok-ink: hsl(146 60% 8%);
-    --cobalt: hsl(214 90% 68%);
 }
 
 /* "Not as dark": same palette lifted off black, for rooms with
@@ -151,7 +150,6 @@ html[data-mode="dusk"] {
     --warn: hsl(41 82% 62%);
     --bad:  hsl(5 82% 68%);
     --ok-ink: hsl(146 60% 9%);
-    --cobalt: hsl(214 88% 74%);
 }
 
 /* Warm paper. Bright but low glare. */
@@ -169,7 +167,6 @@ html[data-mode="sepia"] {
     --warn: hsl(32 78% 34%);
     --bad:  hsl(2 68% 44%);
     --ok-ink: hsl(40 40% 97%);
-    --cobalt: hsl(216 62% 38%);
 }
 
 /* Cool white. The print-adjacent one. */
@@ -187,7 +184,6 @@ html[data-mode="light"] {
     --warn: hsl(32 80% 33%);
     --bad:  hsl(2 70% 45%);
     --ok-ink: hsl(150 30% 99%);
-    --cobalt: hsl(216 72% 42%);
 }
 
 /* ============================================================
@@ -262,10 +258,10 @@ html[data-design="console"] body::before {
         var(--line-soft) 0 1px, transparent 1px 6px);
     opacity: 0.32;
 }
-/* A faint blue light falling from the top edge, like a lit screen. */
+/* A faint accent light falling from the top edge, like a lit screen. */
 html[data-design="cobalt"] body::before {
     background-image: linear-gradient(180deg,
-        color-mix(in srgb, var(--cobalt) 9%, transparent), transparent 360px);
+        color-mix(in srgb, var(--accent) 9%, transparent), transparent 360px);
     opacity: 1;
 }
 /* A single soft wash in the current accent, and nothing else. */
@@ -306,14 +302,14 @@ html[data-design="chamfer"] .chamfer-sm {
     background: var(--card);
     border-bottom: 1px solid var(--line);
 }
-/* Cobalt only: a blue hairline under the bar that fades out to the
+/* Cobalt only: an accent hairline under the bar that fades out to the
    right, so it reads as an edge and not a stripe. */
 html[data-design="cobalt"] .topbar::after {
     content: "";
     position: absolute;
     left: 0; right: 0; bottom: -1px;
     height: 1px;
-    background: linear-gradient(90deg, var(--cobalt), transparent 75%);
+    background: linear-gradient(90deg, var(--accent), transparent 75%);
     opacity: 0.8;
 }
 /* Console only: the bar sits on a second hairline, like a rule under
@@ -384,7 +380,7 @@ html[data-design="chamfer"] .logo {
     border-radius: 0;
     clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
 }
-html[data-design="cobalt"] .logo { border-color: var(--cobalt); }
+html[data-design="cobalt"] .logo { border-color: var(--accent); }
 html[data-design="contour"] .logo { border-radius: 50%; }
 @keyframes logo-in {
     from { opacity: 0; transform: scale(0.75); }
@@ -431,9 +427,9 @@ html[data-design="contour"] .tab { border-radius: 999px; }
 /* Cobalt: the selected tab is a boxed chip, like a picker in a toolbar.
    The border was already there, transparent, so nothing moves. */
 html[data-design="cobalt"] .tab[aria-selected="true"] {
-    color: var(--cobalt);
-    background: color-mix(in srgb, var(--cobalt) 12%, transparent);
-    border-color: color-mix(in srgb, var(--cobalt) 55%, transparent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 html[data-design="cobalt"] .tab::after { display: none; }
 
@@ -652,14 +648,14 @@ html[data-design="console"] .panel::before {
     background: var(--accent);
     opacity: 0.55;
 }
-/* Cobalt: a short blue rule on the top edge, like the marker on an
+/* Cobalt: a short accent rule on the top edge, like the marker on an
    active editor tab. Sits on the border, never in the content. */
 html[data-design="cobalt"] .panel::before {
     content: "";
     position: absolute;
     top: -1px; left: var(--pad);
     width: 32px; height: 2px;
-    background: var(--cobalt);
+    background: var(--accent);
     border-radius: 0 0 2px 2px;
 }
 @media print { .panel { clip-path: none !important; } .panel::before { display: none; } }
@@ -949,7 +945,6 @@ td .field { padding: 5px 8px; }
         --line: #999999; --line-soft: #cccccc;
         --fg: #111111; --fg-dim: #555555; --fg-faint: #777777;
         --accent: #333333; --accent-soft: transparent; --accent-ink: #ffffff;
-        --cobalt: #555555;
         --shadow: none; --shadow-lift: none;
     }
     body::before { display: none !important; }
@@ -1211,7 +1206,7 @@ table.bits th { text-transform: none; letter-spacing: 0; font-weight: 400; font-
                     <div class="menu-title">Design</div>
                     <button class="opt" role="menuitemradio" aria-checked="false" data-set="cobalt">
                         <span class="dsw" aria-hidden="true"></span>
-                        <span class="lbl">Cobalt<small>navy chrome, blue rule, soft corners</small></span>
+                        <span class="lbl">Cobalt<small>navy chrome, accent rules, soft corners</small></span>
                         <span class="tick" aria-hidden="true">&check;</span>
                     </button>
                     <button class="opt" role="menuitemradio" aria-checked="false" data-set="chamfer">
