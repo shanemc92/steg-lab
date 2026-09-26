@@ -94,9 +94,9 @@ one never resets the others.
 
 | Design | Shape | Backdrop |
 |---|---|---|
-| `chamfer` | Cut corners | Instrument grid. The default |
+| `cobalt` | Slight radius, navy | Blue glow from the top, blue edge rules. The default |
+| `chamfer` | Cut corners | Instrument grid |
 | `console` | Square, graphite | Horizontal scan rules |
-| `circuit` | Slight radius, board green | Via holes, copper edge |
 | `contour` | Soft radii, violet | A single accent wash |
 
 **Mode** sets the lightness ramp only, and every design supports every mode:
